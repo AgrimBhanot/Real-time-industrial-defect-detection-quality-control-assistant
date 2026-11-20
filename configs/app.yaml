@@ -1,0 +1,65 @@
+# Runtime configuration. Any key can be overridden from the CLI:
+#   python -m qc run --set vision.backend=groundtruth --set source.path=data/demo/pcb
+profile: pcb                      # pcb | fasteners  -> configs/profiles/<profile>.yaml
+
+source:
+  type: folder                    # folder (simulated conveyor) | video | camera
+  path: data/demo/{profile}/images
+  shuffle: true
+  loop: true
+  fps_limit: 4                    # conveyor pace in units/s; 0 = as fast as possible
+  camera:
+    kind: usb                     # usb | csi
+    index: 0
+    width: 1280
+    height: 720
+    fps: 30
+
+vision:
+  backend: tensorrt               # tensorrt | onnxruntime | torch | groundtruth (dev only: reads label files)
+  weights_dir: models/vision/{profile}
+  imgsz: 640
+  conf: 0.25
+  iou: 0.5
+  half: true
+  device: 0
+
+advisory:
+  enabled: true
+  backend: executorch             # executorch | template (deterministic SOP text, used as fallback too)
+  submit_when: [FAIL, REVIEW, PASS_WITH_NOTE]
+  queue_size: 8
+  retries: 1
+  temperature: 0.2
+  executorch:
+    mode: server                  # server: persistent qc_llm_server (model loaded once) | oneshot: llama_main per call
+    server: third_party/executorch/cmake-out/examples/models/llama/qc_llm_server
+    server_log: runs/logs/llm_server.log
+    runner: third_party/executorch/cmake-out/examples/models/llama/llama_main
+    model: models/llm/llama3_2_1b_instruct_8da4w.pte
+    tokenizer: models/llm/tokenizer.model
+    max_new_tokens: 256           # advice JSON is ~110-200 tokens; loops are cut early by the server
+    seq_len: 1536                 # oneshot only (prompt + output)
+    cpu_threads: 4                # of 6 A78AE cores; vision runs on the GPU
+    warmup: true
+    start_timeout_s: 120
+    timeout_s: 180
+    # oneshot mode: argument template for llama_main (check `llama_main --help` for the pinned release)
+    args:
+      - "--model_path={model}"
+      - "--tokenizer_path={tokenizer}"
+      - "--prompt={prompt}"
+      - "--temperature={temperature}"
+      - "--seq_len={seq_len}"
+      - "--cpu_threads={cpu_threads}"
+
+logging:
+  db: runs/inspections.db
+  save_frames: defective          # all | defective | none
+  frames_dir: runs/frames
+  context_window: 50              # units of history passed to Llama as context
+
+server:
+  host: 0.0.0.0
+  port: 8000
+  stream_fps: 12

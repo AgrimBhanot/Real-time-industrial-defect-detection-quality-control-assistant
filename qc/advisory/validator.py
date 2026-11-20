@@ -1,0 +1,156 @@
+"""Checks that Llama output is well-formed JSON and grounded (mentions no defect absent from the record)."""
+from __future__ import annotations
+
+import json
+import re
+from typing import Optional
+
+from qc.schema import ADVICE_KEYS, InspectionRecord
+
+MAX_FIELD_CHARS = 300
+LIST_KEYS = ("likely_causes", "recommended_actions")
+
+
+def extract_json(text: str) -> Optional[dict]:
+    """First balanced, parseable JSON object in text (tolerates chatter before/after)."""
+    start = text.find("{")
+    while start != -1:
+        depth, in_str, esc = 0, False, False
+        for j in range(start, len(text)):
+            ch = text[j]
+            if in_str:
+                if esc:
+                    esc = False
+                elif ch == "\\":
+                    esc = True
+                elif ch == '"':
+                    in_str = False
+            elif ch == '"':
+                in_str = True
+            elif ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        obj = json.loads(text[start:j + 1])
+                        if isinstance(obj, dict):
+                            return obj
+                    except json.JSONDecodeError:
+                        pass
+                    break
+        start = text.find("{", start + 1)
+    return None
+
+
+def collapse_trailing_loop(s: str, min_p: int = 8, max_p: int = 80) -> tuple[str, bool]:
+    """If s ends in a span repeated back-to-back (a generation loop, possibly cut mid-copy), keep one copy."""
+    n, best = len(s), None
+    for p in range(min_p, min(max_p, n // 2) + 1):
+        r, i = 0, n - 1
+        while i - p >= 0 and s[i] == s[i - p]:
+            r, i = r + 1, i - 1
+        if r >= p and (best is None or r > best[1]):
+            best = (p, r)
+    if not best:
+        return s, False
+    p, r = best
+    cut = n - r  # s[:cut] holds the text before the loop plus one period (possibly rotated mid-word)
+    end = cut
+    while end < n and end - cut < p and not s[end].isspace() and s[end] not in '",;':
+        end += 1  # finish the word the period boundary fell into
+    return s[:end].rstrip(" ;,"), True
+
+
+def _close(fragment: str) -> str:
+    """Close an unterminated string / arrays / objects at the end of a JSON fragment."""
+    stack, in_str, esc = [], False, False
+    for ch in fragment:
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+        elif ch == '"':
+            in_str = True
+        elif ch in "{[":
+            stack.append("}" if ch == "{" else "]")
+        elif ch in "}]" and stack:
+            stack.pop()
+    out = fragment.rstrip("\\") + '"' if in_str else fragment.rstrip().rstrip(",:")
+    return out + "".join(reversed(stack))
+
+
+def repair_json(text: str) -> tuple[Optional[dict], list[str]]:
+    """Recover a JSON object from output that was cut off (token limit or loop stop). Returns (obj, notes)."""
+    start = text.find("{")
+    if start < 0:
+        return None, []
+    frag, looped = collapse_trailing_loop(text[start:].rstrip())
+    notes = ["collapsed a repetition loop"] if looped else []
+    for _ in range(6):
+        try:
+            obj = json.loads(_close(frag))
+            if isinstance(obj, dict):
+                return obj, notes + ["closed truncated JSON"]
+        except json.JSONDecodeError:
+            pass
+        cut = frag.rfind(",")  # drop the last (partial) element and retry
+        if cut <= 0:
+            break
+        frag = frag[:cut]
+    return None, notes
+
+
+def _patterns(profile: dict, cls: str) -> list[re.Pattern]:
+    phrases = profile.get("mention_patterns", {}).get(cls) or [cls, cls.replace("_", " "), cls.replace("-", " ")]
+    return [re.compile(rf"(?<![\w-]){re.escape(p)}(?![\w-])", re.IGNORECASE) for p in set(phrases)]
+
+
+def mentioned_classes(text: str, profile: dict) -> set[str]:
+    return {c for c in profile["classes"] if any(p.search(text) for p in _patterns(profile, c))}
+
+
+def validate(text: str, record: InspectionRecord, profile: dict,
+             notes: Optional[list] = None) -> tuple[Optional[dict], list[str]]:
+    """Strict checks on Llama output. If `notes` is a list, truncated output is repaired (loop collapsed,
+    JSON closed) and what was repaired is appended to it; the repaired object must still pass every check."""
+    obj = extract_json(text)
+    if obj is None and notes is not None:
+        obj, how = repair_json(text)
+        if obj is not None:
+            notes += how
+    if obj is None:
+        return None, ["no parseable JSON object in output"]
+    errors = []
+    advice = {}
+    for k in ADVICE_KEYS:
+        if k not in obj:
+            errors.append(f"missing key {k!r}")
+            continue
+        v = obj[k]
+        if k in LIST_KEYS:
+            if isinstance(v, str):
+                v = [v]
+            if not isinstance(v, list) or not v or not all(isinstance(x, str) and x.strip() for x in v):
+                errors.append(f"{k!r} must be a non-empty list of strings")
+                continue
+            v = [x.strip()[:MAX_FIELD_CHARS] for x in v[:4]]
+        else:
+            if not isinstance(v, str) or not v.strip():
+                errors.append(f"{k!r} must be a non-empty string")
+                continue
+            if len(v) > MAX_FIELD_CHARS:
+                errors.append(f"{k!r} longer than {MAX_FIELD_CHARS} chars")
+                continue
+            v = v.strip()
+        advice[k] = v
+    if errors:
+        return None, errors
+    blob = " ".join(x if isinstance(x, str) else " ".join(x) for x in advice.values())
+    invented = mentioned_classes(blob, profile) - set(record.defect_classes)
+    if invented:
+        return None, [f"mentions defect(s) not in record: {sorted(invented)}"]
+    return advice, []

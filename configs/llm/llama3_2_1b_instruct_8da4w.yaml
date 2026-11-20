@@ -1,0 +1,24 @@
+# ExecuTorch export recipe for the advisory model (executorch==1.0.0, extension.llm.export.export_llm).
+# scripts/export_llama_pte.sh fills the @CKPT@ / @OUT@ placeholders and runs it.
+base:
+  model_class: llama3_2
+  checkpoint: "@CKPT@/original/consolidated.00.pth"
+  params: "@CKPT@/original/params.json"
+  # BOS / EOS ids of Llama 3.x: generation stops at <|eot_id|> (128009) or <|end_of_text|> (128001)
+  metadata: '{"get_bos_id":128000,"get_eos_ids":[128009,128001]}'
+model:
+  use_kv_cache: true
+  use_sdpa_with_kv_cache: true    # fused custom SDPA op, much faster on CPU
+  dtype_override: fp32            # recommended for XNNPACK
+backend:
+  xnnpack:
+    enabled: true
+    extended_ops: true
+quantization:
+  qmode: 8da4w                    # int8 dynamic activations x int4 weights for linear layers
+  group_size: 32
+  embedding_quantize: "4,32"      # 4-bit embedding table, group 32
+export:
+  max_seq_length: 2048            # longest prompt chunk prefilled at once
+  max_context_length: 2048        # KV-cache window; advisory prompt ~0.7-1k tokens + <=200 generated
+  output_name: "@OUT@"

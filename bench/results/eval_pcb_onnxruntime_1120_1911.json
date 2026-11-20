@@ -1,0 +1,148 @@
+{
+  "profile": "pcb",
+  "backend": "onnxruntime",
+  "split": "test",
+  "clean_split": "test_clean",
+  "iou_threshold": 0.5,
+  "conf_threshold": 0.25,
+  "n_images": 1000,
+  "n_defective_units": 500,
+  "n_clean_units": 500,
+  "per_class": {
+    "open": {
+      "tp": 643,
+      "fp": 294,
+      "fn": 16,
+      "precision": 0.6862326574172892,
+      "recall": 0.9757207890743551,
+      "f1": 0.8057644110275689,
+      "hard_case_recall": 0.9636363636363636
+    },
+    "short": {
+      "tp": 433,
+      "fp": 67,
+      "fn": 45,
+      "precision": 0.866,
+      "recall": 0.9058577405857741,
+      "f1": 0.885480572597137,
+      "hard_case_recall": 0.925
+    },
+    "mousebite": {
+      "tp": 567,
+      "fp": 29,
+      "fn": 19,
+      "precision": 0.9513422818791947,
+      "recall": 0.9675767918088737,
+      "f1": 0.9593908629441624,
+      "hard_case_recall": 0.9733333333333334
+    },
+    "spur": {
+      "tp": 463,
+      "fp": 15,
+      "fn": 20,
+      "precision": 0.9686192468619247,
+      "recall": 0.9585921325051759,
+      "f1": 0.963579604578564,
+      "hard_case_recall": 0.9752066115702479
+    },
+    "copper": {
+      "tp": 452,
+      "fp": 35,
+      "fn": 12,
+      "precision": 0.9281314168377823,
+      "recall": 0.9741379310344828,
+      "f1": 0.9505783385909569,
+      "hard_case_recall": 0.9743589743589743
+    },
+    "pin-hole": {
+      "tp": 468,
+      "fp": 136,
+      "fn": 2,
+      "precision": 0.7748344370860927,
+      "recall": 0.9957446808510638,
+      "f1": 0.871508379888268,
+      "hard_case_recall": 1.0
+    }
+  },
+  "macro": {
+    "precision": 0.8625266733470472,
+    "recall": 0.9629383443099543,
+    "f1": 0.9060503616044429
+  },
+  "hard_case_recall_overall": 0.9683944374209861,
+  "unit_level": {
+    "escape_rate": 0.006,
+    "false_reject_rate": 0.084,
+    "verdict_matrix_gt_to_pred": {
+      "FAIL": {
+        "FAIL": 495,
+        "REVIEW": 2
+      },
+      "PASS_WITH_NOTE": {
+        "PASS_WITH_NOTE": 2
+      },
+      "REVIEW": {
+        "PASS_WITH_NOTE": 1
+      },
+      "PASS": {
+        "PASS": 458,
+        "FAIL": 32,
+        "REVIEW": 10
+      }
+    }
+  },
+  "confusion_gt_to_pred": {
+    "open": {
+      "open": 639,
+      "mousebite": 5,
+      "missed": 15
+    },
+    "mousebite": {
+      "mousebite": 561,
+      "open": 5,
+      "missed": 16,
+      "pin-hole": 4
+    },
+    "spur": {
+      "spur": 460,
+      "copper": 1,
+      "missed": 17,
+      "short": 4,
+      "mousebite": 1
+    },
+    "pin-hole": {
+      "pin-hole": 467,
+      "missed": 2,
+      "copper": 1
+    },
+    "copper": {
+      "copper": 452,
+      "missed": 9,
+      "mousebite": 1,
+      "short": 1,
+      "spur": 1
+    },
+    "background": {
+      "mousebite": 27,
+      "pin-hole": 132,
+      "copper": 32,
+      "spur": 15,
+      "open": 293,
+      "short": 64
+    },
+    "short": {
+      "short": 431,
+      "missed": 42,
+      "spur": 2,
+      "copper": 1,
+      "pin-hole": 1,
+      "mousebite": 1
+    }
+  },
+  "latency_ms": {
+    "mean": 32.2232287720235,
+    "p50": 32.973868998851685,
+    "p95": 33.971197198479786
+  },
+  "evaluated_at": "2026-11-20T19:11:43"
+}

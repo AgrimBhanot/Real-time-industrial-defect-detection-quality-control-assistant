@@ -1,0 +1,9 @@
+# Installed by scripts/setup_jetson.sh. torch/torchvision come from the Jetson AI Lab index (CUDA build),
+# ultralytics is pinned in scripts/versions.env, OpenCV comes from the system (GStreamer support).
+numpy<2
+pyyaml>=5.4
+psutil>=5.9
+flask>=3.0,<4
+onnx>=1.16,<1.18
+onnxslim
+pytest>=7

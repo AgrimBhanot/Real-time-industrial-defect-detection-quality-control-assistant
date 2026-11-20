@@ -1,0 +1,66 @@
+name: pcb
+title: bare-PCB copper-pattern inspection (AOI after etching)
+station: AOI-1
+dataset: DeepPCB (https://github.com/tangsanli5201/DeepPCB) - research use; artificial defects disclosed
+
+classes: [open, short, mousebite, spur, copper, pin-hole]
+
+# DeepPCB scans are ~48 px/mm. Recalibrate when switching to a Pi/USB camera.
+px_per_mm: 48.0
+zones: {rows: 3, cols: 3}
+
+severity:
+  confidence_review_below: 0.40
+  # [P33, P66] of defect area per class (mm^2). Overwritten by
+  # configs/profiles/pcb.size_thresholds.json after training/calibrate_severity.py.
+  size_thresholds:
+    mousebite: [0.020, 0.060]
+    spur:      [0.020, 0.060]
+    copper:    [0.020, 0.060]
+    pin-hole:  [0.010, 0.030]
+  classes:
+    open:      {base: high}
+    short:     {base: high}
+    mousebite: {base: medium, size_rule: three_level}
+    spur:      {base: medium, size_rule: three_level}
+    copper:    {base: medium, size_rule: three_level}
+    pin-hole:  {base: low,    size_rule: escalate_only}
+
+decision:
+  fail_if_any: high
+  fail_if_medium_count_at_least: 2
+  review_if_medium_count_at_least: 1
+
+# Phrases that count as "mentioning" a class when checking that Llama does not
+# talk about defects absent from the record. Default is the class name itself.
+mention_patterns:
+  open: ["open circuit", "open defect", "broken trace", "trace break"]
+  short: ["short circuit", "short defect", "copper bridge", "solder bridge"]
+  copper: ["spurious copper", "stray copper", "copper blob", "copper defect"]
+  pin-hole: ["pin-hole", "pinhole", "pin hole"]
+
+sop:
+  open:
+    meaning: break in a copper trace
+    causes: [over-etching, scratch or handling damage, resist flaw, dust on phototool]
+    actions: [check etch time and concentration, inspect handling and phototool cleanliness, quarantine the lot]
+  short:
+    meaning: unintended copper bridge between conductors
+    causes: [under-etching, resist residue, conductive debris]
+    actions: [check etchant strength and rinse, rework by cutting the bridge, clean the line]
+  mousebite:
+    meaning: notches or missing copper along a trace edge
+    causes: [resist nick, film edge damage, over-etch at edges]
+    actions: [inspect resist integrity and film edges, check handling]
+  spur:
+    meaning: small copper protrusion from a trace
+    causes: [under-etch residue, resist defect]
+    actions: [check etch uniformity, clean artwork]
+  copper:
+    meaning: isolated stray copper
+    causes: [incomplete etch, contamination]
+    actions: [check rinse and strip steps, clean the environment]
+  pin-hole:
+    meaning: small hole inside a copper area
+    causes: [resist pinhole, plating void, dust on phototool]
+    actions: [clean phototool, inspect resist coat]
