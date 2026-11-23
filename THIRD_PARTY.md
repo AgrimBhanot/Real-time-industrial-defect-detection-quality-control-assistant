@@ -30,3 +30,8 @@ by `training/prepare_deeppcb.py` and is not redistributed in this repository.
   year={2019}
 }
 ```
+
+## MVTec AD (Phase 2, `mvtec_fasteners` profile)
+Categories `screw` and `metal_nut` of the MVTec Anomaly Detection dataset, https://www.mvtec.com/company/research/datasets/mvtec-ad,
+CC BY-NC-SA 4.0 (no commercial use). Images are not redistributed in this repository. Cite: Bergmann et al.,
+"MVTec AD - A Comprehensive Real-World Dataset for Unsupervised Anomaly Detection", CVPR 2019.
