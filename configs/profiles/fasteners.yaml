@@ -1,29 +1,27 @@
-# DRAFT profile for live-camera inspection of nuts, bolts and screws.
-# Classes, thresholds and SOP text are placeholders until the domain is decided
-# and a labelled dataset exists (see training/capture_images.py).
+# Live-camera inspection of bolts (Phase 2). No trained model yet: capture, label and train first
+# (docs/fasteners_live.md). Severity policy and SOP text are engineering defaults, not a standard.
 name: fasteners
-title: fastener (nut / bolt / screw) visual inspection
+title: bolt visual inspection
 station: QC-CAM-1
-dataset: TBD - own captures (training/capture_images.py) labelled in CVAT / Label Studio
+dataset: own captures (training/capture_images.py), split by physical part (training/prepare_fasteners.py)
 
-classes: [crack, thread_damage, deformation, head_damage, rust]
+# Order = YOLO class ids; keep the labelling tool's class list identical.
+classes: [thread_damage, deformation, rust]
 
-# null -> sizes are measured as a fraction of the frame area instead of mm^2.
-# Set this after calibrating the camera at a fixed working distance.
-px_per_mm: null
+px_per_mm: null                    # null: sizes are a fraction of the frame area; set for a calibrated fixed rig
 zones: {rows: 3, cols: 3}
+
+# Bolts lie at any angle, unlike PCB scans. Mild colour jitter only: rust is a colour defect.
+augmentation: {degrees: 180.0, hsv_h: 0.01, hsv_s: 0.3, hsv_v: 0.4}
 
 severity:
   confidence_review_below: 0.40
-  size_thresholds:                 # fraction of frame area [P33, P66]
+  size_thresholds:                 # placeholders until training/calibrate_severity.py --profile fasteners
     deformation: [0.002, 0.010]
-    head_damage: [0.002, 0.010]
     rust:        [0.005, 0.030]
   classes:
-    crack:         {base: high}
     thread_damage: {base: high}
     deformation:   {base: medium, size_rule: three_level}
-    head_damage:   {base: medium, size_rule: three_level}
     rust:          {base: low,    size_rule: escalate_only}
 
 decision:
@@ -33,13 +31,10 @@ decision:
 
 mention_patterns:
   thread_damage: ["thread damage", "damaged thread", "stripped thread", "thread_damage"]
-  head_damage: ["head damage", "damaged head", "head_damage", "cam-out"]
+  deformation: ["deformation", "deformed", "bent shank"]
+  rust: ["rust", "corrosion", "corroded"]
 
 sop:
-  crack:
-    meaning: visible crack in the part body or head
-    causes: [over-heading during cold forming, quench cracking in heat treatment, material inclusions]
-    actions: [quarantine the lot, check heat-treatment records, run a magnetic-particle check on samples]
   thread_damage:
     meaning: stripped, flattened or missing threads
     causes: [worn thread-rolling dies, handling impact, mis-fed blanks]
@@ -48,10 +43,6 @@ sop:
     meaning: bent shank or out-of-shape body
     causes: [feeder jam, impact in handling, incorrect forming load]
     actions: [check feeder and chutes, verify forming press settings]
-  head_damage:
-    meaning: damaged drive recess or head edge
-    causes: [worn punch, burrs from trimming, handling impact]
-    actions: [inspect punch and trim tooling, check deburring step]
   rust:
     meaning: surface corrosion
     causes: [inadequate plating or oiling, humid storage]
