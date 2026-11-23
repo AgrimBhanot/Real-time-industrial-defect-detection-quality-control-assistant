@@ -89,8 +89,37 @@ def csi_pipeline(width: int, height: int, fps: int, sensor_id: int = 0) -> str:
     )
 
 
+class StableTrigger:
+    """Turns a camera stream into units: fires once when the scene has changed and then held still.
+
+    The reference is the last fired view, so a part resting under the camera is inspected only once.
+    """
+
+    def __init__(self, change: float = 8.0, still: float = 2.0, frames: int = 5):
+        self.change, self.still, self.frames = change, still, frames
+        self.prev = self.ref = None
+        self.n_still = 0
+
+    def update(self, img: np.ndarray) -> bool:
+        g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if img.ndim == 3 else img
+        g = cv2.GaussianBlur(cv2.resize(g, (160, 120), interpolation=cv2.INTER_AREA), (5, 5), 0)
+        prev, self.prev = self.prev, g
+        if prev is None or float(cv2.absdiff(g, prev).mean()) > self.still:
+            self.n_still = 0
+            return False
+        self.n_still += 1
+        if self.n_still < self.frames:
+            return False
+        if self.ref is not None and float(cv2.absdiff(g, self.ref).mean()) < self.change:
+            return False
+        self.ref = g
+        return True
+
+
 class CameraSource:
-    def __init__(self, kind: str = "usb", index: int = 0, width: int = 1280, height: int = 720, fps: int = 30):
+    def __init__(self, kind: str = "usb", index: int = 0, width: int = 1280, height: int = 720, fps: int = 30,
+                 trigger: Optional[StableTrigger] = None, reconnect_s: float = 0.0):
+        self.trigger, self.reconnect_s = trigger, reconnect_s
         self.kind, self.index, self.width, self.height, self.fps = kind, index, width, height, fps
 
     def _open(self) -> cv2.VideoCapture:
@@ -106,6 +135,20 @@ class CameraSource:
             raise RuntimeError(f"cannot open {self.kind} camera {self.index}")
         return cap
 
+    def _reopen(self) -> cv2.VideoCapture:
+        """Retry for up to reconnect_s seconds (0 = fail at once)."""
+        deadline = time.monotonic() + self.reconnect_s
+        while time.monotonic() < deadline:
+            try:
+                cap = self._open()
+                if cap.read()[0]:  # some drivers reopen a dead device; only a frame proves it is back
+                    return cap
+                cap.release()
+            except RuntimeError:
+                pass
+            time.sleep(min(0.5, self.reconnect_s))
+        raise RuntimeError(f"camera read failed ({self.kind} {self.index})")
+
     def __iter__(self) -> Iterator[Frame]:
         cap = self._open()
         idx = 0
@@ -113,7 +156,11 @@ class CameraSource:
             while True:
                 ok, img = cap.read()
                 if not ok:
-                    raise RuntimeError("camera read failed")
+                    cap.release()
+                    cap = self._reopen()
+                    continue
+                if self.trigger is not None and not self.trigger.update(img):
+                    continue
                 yield Frame(img, f"camera:{self.kind}:{self.index}#{idx}", "camera")
                 idx += 1
         finally:
@@ -131,5 +178,8 @@ def build_source(cfg: Config):
     if kind == "camera":
         c = s.get("camera", {})
         return CameraSource(c.get("kind", "usb"), int(c.get("index", 0)), int(c.get("width", 1280)),
-                            int(c.get("height", 720)), int(c.get("fps", 30)))
+                            int(c.get("height", 720)), int(c.get("fps", 30)),
+                            trigger=StableTrigger(**(c.get("trigger_params") or {}))
+                            if c.get("trigger", "none") == "stable" else None,
+                            reconnect_s=float(c.get("reconnect_s", 0)))
     raise ValueError(f"unknown source.type {kind!r}")
