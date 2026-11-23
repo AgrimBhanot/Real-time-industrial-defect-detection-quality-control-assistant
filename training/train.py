@@ -56,10 +56,11 @@ def main() -> None:
     dest = ROOT / "models/vision" / args.profile
     dest.mkdir(parents=True, exist_ok=True)
     shutil.copy2(best, dest / "best.pt")
+    used = model.trainer.args  # actual run arguments: after --resume they differ from the CLI defaults
     card = {
-        "profile": args.profile, "base_model": args.model, "data": str(data), "epochs": args.epochs,
-        "imgsz": args.imgsz, "batch": args.batch, "augmentation": AUG, "run_dir": str(best.parent.parent),
-        "trained_at": datetime.now().isoformat(timespec="seconds"), "host": platform.node(),
+        "profile": args.profile, "base_model": args.model, "data": str(used.data), "epochs": int(used.epochs),
+        "imgsz": int(used.imgsz), "batch": int(used.batch), "augmentation": AUG, "run_dir": str(best.parent.parent),
+        "trained_at": datetime.now().isoformat(timespec="seconds"), "platform": platform.machine(),
         "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
         "versions": {"ultralytics": ultralytics.__version__, "torch": torch.__version__},
         "val_metrics": {k: float(v) for k, v in getattr(results, "results_dict", {}).items()},
