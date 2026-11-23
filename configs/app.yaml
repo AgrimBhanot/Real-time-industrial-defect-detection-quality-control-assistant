@@ -14,6 +14,7 @@ source:
     width: 1280
     height: 720
     fps: 30
+    crop: none                    # none | square (use the same setting for capture, live test and the demo)
     trigger: none                 # none: every frame is a unit | stable: one unit per part that comes to rest
     trigger_params: {change: 8.0, still: 2.0, frames: 5}   # mean grey-level differences; tune on the rig
     reconnect_s: 10               # keep retrying a lost camera this long

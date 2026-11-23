@@ -10,13 +10,14 @@ import argparse
 import json
 import platform
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
-# Geometry-preserving augmentation: rotation/shear/perspective would change what a defect looks like
-# (e.g. trace geometry on PCBs), so they are off. Flips are safe for both PCBs and fasteners.
+# Defaults for flat PCB scans: no rotation/shear/perspective. A profile overrides them with `augmentation:`.
 AUG = dict(degrees=0.0, shear=0.0, perspective=0.0, translate=0.1, scale=0.3, fliplr=0.5, flipud=0.5,
            mosaic=1.0, close_mosaic=10, hsv_h=0.0, hsv_s=0.2, hsv_v=0.3)
 
@@ -36,6 +37,10 @@ def main() -> None:
     ap.add_argument("--resume", default=None, help="path to an interrupted run's weights/last.pt")
     args = ap.parse_args()
 
+    from qc.config import load_profile
+
+    aug = {**AUG, **(load_profile(args.profile).get("augmentation") or {})}
+
     import torch
     import ultralytics
     from ultralytics import YOLO
@@ -50,7 +55,7 @@ def main() -> None:
         results = model.train(data=str(data), epochs=args.epochs, imgsz=args.imgsz, batch=args.batch,
                               device=args.device, workers=args.workers, patience=args.patience,
                               project=str(ROOT / "runs/train" / args.profile), name=name, seed=0, deterministic=True,
-                              plots=True, **AUG)
+                              plots=True, **aug)
 
     best = Path(model.trainer.best)
     dest = ROOT / "models/vision" / args.profile
@@ -59,7 +64,7 @@ def main() -> None:
     used = model.trainer.args  # actual run arguments: after --resume they differ from the CLI defaults
     card = {
         "profile": args.profile, "base_model": args.model, "data": str(used.data), "epochs": int(used.epochs),
-        "imgsz": int(used.imgsz), "batch": int(used.batch), "augmentation": AUG, "run_dir": str(best.parent.parent),
+        "imgsz": int(used.imgsz), "batch": int(used.batch), "augmentation": {k: getattr(used, k) for k in aug}, "run_dir": str(best.parent.parent),
         "trained_at": datetime.now().isoformat(timespec="seconds"), "platform": platform.machine(),
         "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
         "versions": {"ultralytics": ultralytics.__version__, "torch": torch.__version__},

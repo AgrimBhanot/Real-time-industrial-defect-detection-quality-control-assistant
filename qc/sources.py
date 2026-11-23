@@ -89,6 +89,14 @@ def csi_pipeline(width: int, height: int, fps: int, sensor_id: int = 0) -> str:
     )
 
 
+def center_square(img: np.ndarray) -> np.ndarray:
+    """Largest centred square, so a 640 model input is not spent on letterbox bars."""
+    h, w = img.shape[:2]
+    s = min(h, w)
+    y, x = (h - s) // 2, (w - s) // 2
+    return img[y:y + s, x:x + s].copy()
+
+
 class StableTrigger:
     """Turns a camera stream into units: fires once when the scene has changed and then held still.
 
@@ -118,7 +126,10 @@ class StableTrigger:
 
 class CameraSource:
     def __init__(self, kind: str = "usb", index: int = 0, width: int = 1280, height: int = 720, fps: int = 30,
-                 trigger: Optional[StableTrigger] = None, reconnect_s: float = 0.0):
+                 trigger: Optional[StableTrigger] = None, reconnect_s: float = 0.0, crop: str = "none"):
+        if crop not in ("none", "square"):
+            raise ValueError(f"camera crop must be none or square, got {crop!r}")
+        self.crop = crop
         self.trigger, self.reconnect_s = trigger, reconnect_s
         self.kind, self.index, self.width, self.height, self.fps = kind, index, width, height, fps
 
@@ -159,6 +170,8 @@ class CameraSource:
                     cap.release()
                     cap = self._reopen()
                     continue
+                if self.crop == "square":
+                    img = center_square(img)
                 if self.trigger is not None and not self.trigger.update(img):
                     continue
                 yield Frame(img, f"camera:{self.kind}:{self.index}#{idx}", "camera")
@@ -181,5 +194,5 @@ def build_source(cfg: Config):
                             int(c.get("height", 720)), int(c.get("fps", 30)),
                             trigger=StableTrigger(**(c.get("trigger_params") or {}))
                             if c.get("trigger", "none") == "stable" else None,
-                            reconnect_s=float(c.get("reconnect_s", 0)))
+                            reconnect_s=float(c.get("reconnect_s", 0)), crop=c.get("crop", "none"))
     raise ValueError(f"unknown source.type {kind!r}")
