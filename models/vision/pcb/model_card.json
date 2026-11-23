@@ -2,9 +2,9 @@
   "profile": "pcb",
   "base_model": "yolo11n.pt",
   "data": "/home/akshay/ps5-qc-inspector/data/datasets/pcb/dataset.yaml",
-  "epochs": 100,
+  "epochs": 60,
   "imgsz": 640,
-  "batch": 16,
+  "batch": 8,
   "augmentation": {
     "degrees": 0.0,
     "shear": 0.0,
@@ -21,7 +21,7 @@
   },
   "run_dir": "/home/akshay/ps5-qc-inspector/runs/train/pcb/yolo11n_640_jetson",
   "trained_at": "2026-11-20T18:15:05",
-  "host": "Gugugaga",
+  "host": "jetson-orin-nano",
   "gpu": "Orin",
   "versions": {
     "ultralytics": "8.3.253",
