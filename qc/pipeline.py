@@ -69,7 +69,8 @@ class Pipeline:
         self.worker: Optional[AdvisoryWorker] = None
         if enabled:
             self.advisor = Advisor(cfg)
-            self.worker = AdvisoryWorker(self.advisor, self._on_advice, maxsize=int(adv.get("queue_size", 8)))
+            self.worker = AdvisoryWorker(self.advisor, self._on_advice, maxsize=int(adv.get("queue_size", 8)),
+                                         prioritise=bool(adv.get("prioritise", False)))
         self.telemetry = Telemetry(llm_pid=self._llm_pid) if with_telemetry else None
         self._halt = threading.Event()
 

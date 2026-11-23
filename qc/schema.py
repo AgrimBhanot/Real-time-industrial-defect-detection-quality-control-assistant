@@ -63,6 +63,22 @@ class InspectionRecord:
             "context": self.context,
         }
 
+    def llm_view_compact(self) -> dict:
+        """Same facts, fewer tokens: one entry per (defect, severity), most severe first; no rule trace."""
+        groups: dict = {}
+        for d in self.detections:
+            g = groups.setdefault((d.defect, d.severity), {
+                "defect": d.defect, "severity": d.severity, "count": 0, "zones": [], "max_size": 0.0,
+                "size_unit": d.size_unit, "needs_review": 0})
+            g["count"] += 1
+            g["needs_review"] += bool(d.needs_review)
+            g["max_size"] = max(g["max_size"], round(d.size, 3))
+            if d.zone not in g["zones"]:
+                g["zones"].append(d.zone)
+        order = sorted(groups.values(), key=lambda g: -SEVERITIES.index(g["severity"]))
+        return {"unit_id": self.unit_id, "inspection_result": self.inspection_result,
+                "detections": order, "context": self.context}
+
     @property
     def defect_classes(self) -> list:
         return sorted({d.defect for d in self.detections})

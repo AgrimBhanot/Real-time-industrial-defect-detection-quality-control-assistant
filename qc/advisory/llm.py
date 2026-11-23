@@ -190,6 +190,7 @@ class ExecuTorchLLM:
         a = cfg.section("advisory")
         e = a.get("executorch", {})
         self.profile = cfg.profile
+        self.compact = bool(a.get("compact_record", False))
         self.mode = e.get("mode", "server")
         self.runner = cfg.path(e["server"] if self.mode == "server" else e["runner"])
         self.model = cfg.path(e["model"])
@@ -255,7 +256,7 @@ class ExecuTorchLLM:
         return re.sub(r"PyTorchObserver\s*\{.*\}", "", text), stats
 
     def advise(self, record: InspectionRecord) -> LLMOutput:
-        return self.complete(llama3_chat(build_messages(record, self.profile)))
+        return self.complete(llama3_chat(build_messages(record, self.profile, self.compact)))
 
     def close(self) -> None:
         if self.server:

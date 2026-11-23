@@ -35,7 +35,7 @@ def user_message(profile: dict, view: dict) -> str:
     return f"SOP NOTES:\n{sop_notes(profile, classes)}\n\nINSPECTION RECORD:\n{json.dumps(view, separators=(',', ':'))}"
 
 
-def worked_example(profile: dict) -> tuple[str, str]:
+def worked_example(profile: dict, compact: bool = False) -> tuple[str, str]:
     cls = profile["classes"][0]
     e = profile.get("sop", {}).get(cls, {"meaning": cls, "causes": ["unknown"], "actions": ["inspect the process"]})
     view = {
@@ -47,6 +47,10 @@ def worked_example(profile: dict) -> tuple[str, str]:
         "context": {"station": profile.get("station", ""), "recent_units": 50, "recent_fail": 4,
                     "recent_defects": {cls: 3}},
     }
+    if compact:
+        view["detections"] = [{"defect": cls, "severity": "high", "count": 1, "zones": ["B2"], "max_size": 0.05,
+                               "size_unit": "mm2", "needs_review": 0}]
+        del view["rule_trace"]
     answer = {
         "summary": f"Unit failed with one high-severity {cls} ({e.get('meaning', cls)}) in zone B2.",
         "likely_causes": e["causes"][:2],
@@ -57,13 +61,13 @@ def worked_example(profile: dict) -> tuple[str, str]:
     return user_message(profile, view), json.dumps(answer)
 
 
-def build_messages(record: InspectionRecord, profile: dict) -> list[tuple[str, str]]:
-    ex_user, ex_answer = worked_example(profile)
+def build_messages(record: InspectionRecord, profile: dict, compact: bool = False) -> list[tuple[str, str]]:
+    ex_user, ex_answer = worked_example(profile, compact)
     return [
         ("system", SYSTEM.format(title=profile.get("title", profile["name"]), station=profile.get("station", ""))),
         ("user", ex_user),
         ("assistant", ex_answer),
-        ("user", user_message(profile, record.llm_view())),
+        ("user", user_message(profile, record.llm_view_compact() if compact else record.llm_view())),
     ]
 
 

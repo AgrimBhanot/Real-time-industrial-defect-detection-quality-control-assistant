@@ -15,6 +15,9 @@ from qc.schema import AdviceResult, InspectionRecord
 log = logging.getLogger(__name__)
 
 
+PRIORITY = {"PASS_WITH_NOTE": 0, "REVIEW": 1, "FAIL": 2}
+
+
 class Advisor:
     """record -> validated advice. Retries the LLM, then falls back to the SOP template (flagged as fallback)."""
 
@@ -92,14 +95,14 @@ class Advisor:
 
 
 class AdvisoryWorker(threading.Thread):
-    """Runs advice off the inspection loop. When the queue is full the oldest pending unit is dropped."""
+    """Runs advice off the inspection loop. When full, the oldest unit of the lowest priority is dropped."""
 
     def __init__(self, advisor: Advisor, on_result: Optional[Callable[[AdviceResult], None]] = None,
-                 maxsize: int = 8):
+                 maxsize: int = 8, prioritise: bool = False):
         super().__init__(daemon=True, name="advisory")
         self.advisor, self.on_result = advisor, on_result
         self.q: queue.Queue = queue.Queue(maxsize=maxsize)
-        self.dropped = 0
+        self.dropped, self.prioritise = 0, prioritise
         self._halt = threading.Event()  # not "_stop": that name shadows a Thread internal used by join()
 
     def submit(self, record: InspectionRecord, t_captured: Optional[float] = None) -> None:
@@ -110,12 +113,22 @@ class AdvisoryWorker(threading.Thread):
                 self.q.put_nowait(item)
                 return
             except queue.Full:
-                try:
-                    self.q.get_nowait()
-                    self.q.task_done()
+                with self.q.mutex:
+                    pending = self.q.queue
+                    if not pending:
+                        continue
+                    i = 0
+                    if self.prioritise:
+                        rank = [PRIORITY.get(it[0].inspection_result, 0) for it in pending]
+                        low = min(rank)
+                        if PRIORITY.get(record.inspection_result, 0) < low:
+                            self.dropped += 1  # everything waiting matters more than the new unit
+                            return
+                        i = rank.index(low)
+                    del pending[i]
+                    self.q.unfinished_tasks -= 1
+                    self.q.not_full.notify()
                     self.dropped += 1
-                except queue.Empty:
-                    pass
 
     def stop(self) -> None:
         self._halt.set()

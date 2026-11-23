@@ -14,6 +14,9 @@ source:
     width: 1280
     height: 720
     fps: 30
+    trigger: none                 # none: every frame is a unit | stable: one unit per part that comes to rest
+    trigger_params: {change: 8.0, still: 2.0, frames: 5}   # mean grey-level differences; tune on the rig
+    reconnect_s: 10               # keep retrying a lost camera this long
 
 vision:
   backend: tensorrt               # tensorrt | onnxruntime | torch | groundtruth (dev only: reads label files)
@@ -30,6 +33,8 @@ advisory:
   backend: executorch             # executorch | template (deterministic SOP text, used as fallback too)
   submit_when: [FAIL, REVIEW, PASS_WITH_NOTE]
   queue_size: 8
+  prioritise: true                # when the queue is full drop PASS_WITH_NOTE, then REVIEW, then FAIL (oldest first)
+  compact_record: false           # group repeated defects and omit the rule trace (shorter prompt; A/B on the board)
   retries: 1
   temperature: 0.2
   executorch:
