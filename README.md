@@ -14,7 +14,7 @@ frame source ──► vision (runtime A) ──► rule engine ──► SQLite
 
 - **Rules decide, Llama explains.** PASS/FAIL never depends on the LLM. Severity comes from type, size and location, never confidence. Low-confidence detections are routed to human REVIEW.
 - **Two runtimes, two processes.** Vision runs in the Python process on the GPU (TensorRT). Llama runs in `qc_llm_server`, a small C++ program linked against ExecuTorch (`native/qc_llm_server/`). It loads the `.pte` once and then serves prompts over stdin/stdout, so no unit pays the model load. ExecuTorch's own `llama_main` is built alongside it for one-shot checks. The two runtimes are benchmarked separately and together.
-- **Domain = profile.** `configs/profiles/pcb.yaml` (DeepPCB, 6 classes) and `configs/profiles/fasteners.yaml` (nuts/bolts/screws, DRAFT) hold the classes, severity policy, decision rules and SOP notes. Switch with `--set profile=fasteners`.
+- **Domain = profile.** `configs/profiles/pcb.yaml` (DeepPCB, 6 classes) and `configs/profiles/fasteners.yaml` (bolts, Phase 2, no model yet) hold the classes, severity policy, decision rules and SOP notes. Switch with `--set profile=fasteners`.
 
 ## Layout
 
@@ -44,7 +44,7 @@ python -m pytest -q tests
 
 ### 1. Vision model
 - **PCB:** open `training/colab_train.ipynb` in Colab (T4). It downloads DeepPCB, converts it, calibrates severity thresholds, trains YOLO11n, evaluates and exports ONNX. Download `artifacts_pcb.zip`.
-- **Fasteners (live camera):** collect images with `python training/capture_images.py --interval 2 --count 300`, label them in CVAT / Label Studio / Roboflow (YOLO format) into `data/datasets/fasteners/`, then use the same notebook with `PROFILE = "fasteners"`.
+- **Fasteners (live camera, Phase 2):** bolts; capture, per-part split, training and live scoring are described in `docs/fasteners_live.md`. No trained model yet.
 
 Then, on the Jetson:
 ```bash
