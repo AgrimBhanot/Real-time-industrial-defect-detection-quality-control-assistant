@@ -36,6 +36,17 @@ def read_yolo_labels(path: str | Path, w: int, h: int, names: list[str]) -> list
     return dets
 
 
+def check_class_conf(class_conf: Optional[dict], names: list[str]) -> dict[str, float]:
+    """Per-class confidence thresholds; a class not listed uses vision.conf."""
+    out = {str(k): float(v) for k, v in (class_conf or {}).items()}
+    unknown = set(out) - set(names)
+    if unknown:
+        raise ValueError(f"class_conf names unknown classes: {sorted(unknown)}")
+    if any(not 0.0 < v < 1.0 for v in out.values()):
+        raise ValueError("class_conf values must be between 0 and 1")
+    return out
+
+
 class GroundTruthDetector:
     backend = "groundtruth"
 
@@ -54,7 +65,8 @@ class GroundTruthDetector:
 
 class UltralyticsDetector:
     def __init__(self, backend: str, weights: Path, names: list[str], imgsz: int = 640, conf: float = 0.25,
-                 iou: float = 0.5, half: bool = True, device: int | str = 0):
+                 iou: float = 0.5, half: bool = True, device: int | str = 0,
+                 class_conf: Optional[dict] = None):
         if not weights.exists():
             raise FileNotFoundError(
                 f"{backend} weights not found: {weights}\n"
@@ -65,6 +77,8 @@ class UltralyticsDetector:
 
         self.backend, self.names = backend, names
         self.model = YOLO(str(weights), task="detect")
+        self.conf, self.class_conf = conf, check_class_conf(class_conf, names)
+        conf = min([conf, *self.class_conf.values()])  # the model must emit everything any class accepts
         self.kw = dict(imgsz=imgsz, conf=conf, iou=iou, half=half, device=device, verbose=False)
 
     def warmup(self, n: int = 3) -> None:
@@ -81,6 +95,8 @@ class UltralyticsDetector:
             clss = r.boxes.cls.cpu().numpy().astype(int)
             for (x1, y1, x2, y2), c, k in zip(xyxy, confs, clss):
                 name = self.names[k] if k < len(self.names) else r.names.get(k, f"class{k}")
+                if c < self.class_conf.get(name, self.conf):
+                    continue
                 dets.append(Detection(name, float(c), [int(x1), int(y1), int(x2), int(y2)]))
         sp = r.speed
         return dets, {"pre": sp.get("preprocess", 0.0), "infer": sp.get("inference", 0.0),
@@ -98,4 +114,5 @@ def build_detector(cfg: Config, backend: Optional[str] = None):
     weights = cfg.path(v.get("weights_dir", "models/vision/{profile}")) / WEIGHT_FILES[backend]
     return UltralyticsDetector(backend, weights, names, imgsz=int(v.get("imgsz", 640)),
                                conf=float(v.get("conf", 0.25)), iou=float(v.get("iou", 0.5)),
-                               half=bool(v.get("half", True)), device=v.get("device", 0))
+                               half=bool(v.get("half", True)), device=v.get("device", 0),
+                               class_conf=cfg.profile.get("class_conf") if v.get("use_class_conf", True) else None)
