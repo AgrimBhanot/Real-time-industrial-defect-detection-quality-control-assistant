@@ -91,6 +91,9 @@ def main() -> None:
     det.warmup()
     rules = RuleEngine(cfg.profile)
     ds = ROOT / f"data/datasets/{args.profile}"
+    gfile = ds / "groups.json"
+    groups = json.loads(gfile.read_text()) if gfile.exists() else None
+    exposure = defaultdict(lambda: defaultdict(int))  # seen/unseen board groups -> counters
 
     units = [(p, False) for p in images_in(ds / "images" / args.split)]
     units += [(p, True) for p in images_in(ds / "images" / args.clean_split)]
@@ -122,6 +125,15 @@ def main() -> None:
             if not hit:
                 fp[p.defect] += 1
 
+        seen = "all"
+        if groups:
+            g_name = groups["group_of"].get(img_path.stem.removesuffix("_temp"))
+            seen = "seen" if g_name in groups["train_groups"] else "unseen"
+        ex = exposure[seen]
+        ex["tp"] += sum(g_hit)
+        ex["fn"] += len(g_hit) - sum(g_hit)
+        ex["fp"] += len(p_hit) - sum(p_hit)
+
         used = set()
         for g in gts:
             cands = [(iou(g.bbox, p.bbox), i) for i, p in enumerate(preds) if i not in used]
@@ -143,9 +155,13 @@ def main() -> None:
         if gts and not is_clean:
             n_defective += 1
             escapes += pred_v in PASSING
+            ex["defective"] += 1
+            ex["escapes"] += pred_v in PASSING
         if is_clean or not gts:
             n_clean += 1
             false_rejects += pred_v not in PASSING
+            ex["clean"] += 1
+            ex["false_rejects"] += pred_v not in PASSING
 
     per_class, hard_all = {}, []
     for c in names:
@@ -166,7 +182,9 @@ def main() -> None:
         "profile": args.profile, "backend": det.backend, "split": args.split, "clean_split": args.clean_split,
         "iou_threshold": args.iou, "conf_threshold": cfg.section("vision").get("conf"),
         "n_images": len(units), "n_defective_units": n_defective, "n_clean_units": n_clean,
+        "class_conf": getattr(det, "class_conf", {}),
         "per_class": per_class, "macro": macro,
+        "by_group_exposure": {k: dict(v) for k, v in exposure.items()},
         "hard_case_recall_overall": (sum(hard_all) / len(hard_all)) if hard_all else None,
         "unit_level": {
             "escape_rate": escapes / n_defective if n_defective else None,
@@ -201,6 +219,10 @@ def main() -> None:
     md += ["", f"Unit level: escape rate {fmt(u['escape_rate'])} of {n_defective} defective units; "
                f"false-reject rate {fmt(u['false_reject_rate'])} of {n_clean} clean units.",
            f"Vision latency: mean {report['latency_ms']['mean']:.1f} ms, p95 {report['latency_ms']['p95']:.1f} ms."]
+    for k, e in exposure.items():
+        p, r, _ = prf(e["tp"], e["fp"], e["fn"])
+        md.append(f"Board groups {k}: micro P {p:.3f}, R {r:.3f}; escapes {e['escapes']}/{e['defective']}, "
+                  f"false rejects {e['false_rejects']}/{e['clean']}.")
     (out / f"{stem}.md").write_text("\n".join(md) + "\n")
     print("\n".join(md))
     print(f"\nwrote {out / stem}.json / .md")

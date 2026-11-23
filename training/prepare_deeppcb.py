@@ -9,6 +9,7 @@ Output:
 from __future__ import annotations
 
 import argparse
+import json
 import random
 import re
 import shutil
@@ -63,6 +64,7 @@ def main() -> None:
     ap.add_argument("--out", default="data/datasets/pcb")
     ap.add_argument("--download", action="store_true", help="git clone DeepPCB into --src if missing")
     ap.add_argument("--val-frac", type=float, default=0.15)
+    ap.add_argument("--val-groups", nargs="+", default=None, help="explicit board groups for val")
     ap.add_argument("--templates", action="store_true", help="add defect-free templates as negatives + test_clean")
     ap.add_argument("--demo", type=int, default=200, help="test images copied to data/demo/pcb (0 = none)")
     ap.add_argument("--seed", type=int, default=0)
@@ -82,8 +84,23 @@ def main() -> None:
     groups = sorted({p.split("/")[0] for p, _ in trainval})
     rng = random.Random(args.seed)
     rng.shuffle(groups)
-    n_val = max(1, round(len(groups) * args.val_frac))
-    val_groups = set(groups[:n_val])
+    # Groups differ a lot in size, so fill val by image count, not by number of groups.
+    if args.val_groups:
+        val_groups = set(args.val_groups)
+        if val_groups - set(groups):
+            sys.exit(f"unknown val groups: {sorted(val_groups - set(groups))}; choose from {groups}")
+    else:
+        target, n_imgs, val_groups = args.val_frac * len(trainval), 0, set()
+        for g in groups:
+            size = sum(p.split("/")[0] == g for p, _ in trainval)
+            if n_imgs + size <= 1.2 * target:
+                val_groups.add(g)
+                n_imgs += size
+            if n_imgs >= target:
+                break
+    if not val_groups or val_groups == set(groups):
+        sys.exit("the val split needs at least one group and must leave at least one for training")
+    group_of: dict[str, str] = {}
 
     counts: dict[str, int] = {}
     for pairs, default_split in ((trainval, None), (test, "test")):
@@ -97,6 +114,7 @@ def main() -> None:
                 continue
             h, w = cv2.imread(str(img), cv2.IMREAD_GRAYSCALE).shape[:2]
             stem = Path(img_rel).stem
+            group_of[stem] = group
             emit(img, to_yolo(ann, w, h), out, split, stem)
             counts[split] = counts.get(split, 0) + 1
             if args.templates and tmpl.exists():
@@ -109,6 +127,10 @@ def main() -> None:
         "path": str(out), "train": "images/train", "val": "images/val", "test": "images/test",
         "names": dict(enumerate(names)),
     }, sort_keys=False))
+    # The official test list shares most groups with trainval; evaluate.py reports seen/unseen groups separately.
+    (out / "groups.json").write_text(json.dumps({
+        "train_groups": sorted(set(groups) - val_groups), "val_groups": sorted(val_groups), "group_of": group_of,
+    }, indent=1))
     print("images per split:", counts)
     print(f"val groups: {sorted(val_groups)}")
 
