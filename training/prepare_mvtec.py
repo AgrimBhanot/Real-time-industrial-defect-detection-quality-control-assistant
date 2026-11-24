@@ -51,7 +51,7 @@ def split_list(items: list, rng: random.Random, val: float, test: float) -> dict
     return {"test": items[:nt], "val": items[nt:nt + nv], "train": items[nt + nv:]}
 
 
-def build(src: Path, out: Path, names: list[str], seed: int = 0) -> dict:
+def build(src: Path, out: Path, names: list[str], seed: int = 0, repeat: int = 1) -> dict:
     roots = {c: next((p.parents[1] for p in sorted(src.rglob(f"{c}/train/good"))), None) for c in ("screw", "metal_nut")}
     missing = [c for c, r in roots.items() if r is None]
     if missing:
@@ -82,8 +82,11 @@ def build(src: Path, out: Path, names: list[str], seed: int = 0) -> dict:
         stem = f"{cat}_{defect}_{'test' if s == 'test_clean' else 'tr' if defect == 'good' else 'd'}_{f.stem}"
         for kind in ("images", "labels"):
             (out / kind / s).mkdir(parents=True, exist_ok=True)
-        cv2.imwrite(str(out / "images" / s / f"{stem}.png"), img)
-        (out / "labels" / s / f"{stem}.txt").write_text("\n".join(rows) + ("\n" if rows else ""))
+        copies = repeat if s == "train" and cls else 1  # oversampling never touches val or test
+        for r in range(copies):
+            name = stem + (f"_r{r}" if r else "")
+            cv2.imwrite(str(out / "images" / s / f"{name}.png"), img)
+            (out / "labels" / s / f"{name}.txt").write_text("\n".join(rows) + ("\n" if rows else ""))
         counts[f"{s}/{cls or 'good'}"] += 1
     (out / "dataset.yaml").write_text(yaml.safe_dump({
         "path": str(out), "train": "images/train", "val": "images/val", "test": "images/test",
@@ -95,10 +98,11 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--src", required=True)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--repeat", type=int, default=1, help="copies of each defective TRAINING image")
     a = ap.parse_args()
     out = ROOT / "data/datasets/mvtec_fasteners"
     try:
-        print(json.dumps(build(Path(a.src).resolve(), out, load_profile("mvtec_fasteners")["classes"], a.seed), indent=1))
+        print(json.dumps(build(Path(a.src).resolve(), out, load_profile("mvtec_fasteners")["classes"], a.seed, a.repeat), indent=1))
     except ValueError as exc:
         sys.exit(str(exc))
 

@@ -34,5 +34,11 @@ def test_build_split_disjoint_and_complete(tmp_path):
     build(src, out, load_profile("mvtec_fasteners")["classes"])
     stems = [p.stem for p in out.glob("images/*/*.png")]
     assert len(stems) == len(set(stems)) == 9 * 20 + 2 * 20 * 2
+    val = {p.name for p in out.glob("images/val/*")}
+    n_train = len(list(out.glob("images/train/*")))
+    build(src, out, load_profile("mvtec_fasteners")["classes"], repeat=3)
+    assert {p.name for p in out.glob("images/val/*")} == val
+    assert len(list(out.glob("images/train/*"))) > n_train
+    assert not any("_r" in p.stem[-3:] for p in out.glob("images/test*/*"))
     assert all(p.read_text() for p in out.glob("labels/test/*.txt"))
     assert not any(p.read_text() for p in out.glob("labels/test_clean/*.txt"))
