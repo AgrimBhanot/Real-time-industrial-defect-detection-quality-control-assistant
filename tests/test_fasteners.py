@@ -29,7 +29,7 @@ def make(tmp_path, n=5):
 
 def test_profile_is_consistent():
     p = load_profile("fasteners")
-    assert set(p["classes"]) == set(p["severity"]["classes"]) == set(p["sop"])
+    assert set(p["classes"]) == set(p["severity"]["classes"]) == set(p["sop"]) - {"anomaly"}
 
 
 def test_split_is_by_part(tmp_path):

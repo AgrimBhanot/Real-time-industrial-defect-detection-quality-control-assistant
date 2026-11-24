@@ -37,6 +37,10 @@ mention_patterns:
   flipped: ["flipped", "upside down", "upside-down"]
 
 sop:
+  anomaly:
+    meaning: part looks unlike the known good parts, cause not identified
+    causes: [unidentified surface or shape change, wrong part, dirt or lighting change]
+    actions: [inspect the marked area by hand, check lighting and part type]
   tip_damage:
     meaning: deformed or broken screw tip
     causes: [worn pointing die, handling impact]

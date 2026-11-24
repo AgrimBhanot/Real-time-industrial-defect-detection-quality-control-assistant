@@ -1,0 +1,142 @@
+{
+  "profile": "mvtec_fasteners",
+  "backend": "torch+anomaly",
+  "split": "val",
+  "clean_split": "none",
+  "iou_threshold": 0.5,
+  "conf_threshold": 0.25,
+  "n_images": 112,
+  "n_defective_units": 31,
+  "n_clean_units": 81,
+  "class_conf": {},
+  "per_class": {
+    "tip_damage": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 2,
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1": 0.6666666666666666,
+      "hard_case_recall": 0.0
+    },
+    "scratch": {
+      "tp": 11,
+      "fp": 3,
+      "fn": 3,
+      "precision": 0.7857142857142857,
+      "recall": 0.7857142857142857,
+      "f1": 0.7857142857142857,
+      "hard_case_recall": 0.75
+    },
+    "thread_damage": {
+      "tp": 4,
+      "fp": 4,
+      "fn": 4,
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "hard_case_recall": 0.0
+    },
+    "bent": {
+      "tp": 4,
+      "fp": 2,
+      "fn": 0,
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "f1": 0.8,
+      "hard_case_recall": 1.0
+    },
+    "discolouration": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "hard_case_recall": 1.0
+    },
+    "flipped": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "hard_case_recall": 1.0
+    }
+  },
+  "macro": {
+    "precision": 0.8253968253968255,
+    "recall": 0.7976190476190476,
+    "f1": 0.792063492063492
+  },
+  "by_group_exposure": {
+    "all": {
+      "tp": 27,
+      "fn": 9,
+      "fp": 14,
+      "defective": 31,
+      "escapes": 2,
+      "clean": 81,
+      "false_rejects": 2
+    }
+  },
+  "hard_case_recall_overall": 0.6,
+  "unit_level": {
+    "escape_rate": 0.06451612903225806,
+    "false_reject_rate": 0.024691358024691357,
+    "verdict_matrix_gt_to_pred": {
+      "FAIL": {
+        "FAIL": 14,
+        "REVIEW": 2
+      },
+      "PASS_WITH_NOTE": {
+        "REVIEW": 2
+      },
+      "REVIEW": {
+        "REVIEW": 11,
+        "PASS": 2
+      },
+      "PASS": {
+        "PASS": 79,
+        "REVIEW": 2
+      }
+    }
+  },
+  "confusion_gt_to_pred": {
+    "bent": {
+      "bent": 4
+    },
+    "background": {
+      "scratch": 3,
+      "bent": 1,
+      "anomaly": 5,
+      "thread_damage": 4
+    },
+    "discolouration": {
+      "discolouration": 3
+    },
+    "flipped": {
+      "flipped": 3
+    },
+    "scratch": {
+      "scratch": 11,
+      "bent": 1,
+      "missed": 2
+    },
+    "tip_damage": {
+      "tip_damage": 2,
+      "missed": 2
+    },
+    "thread_damage": {
+      "missed": 4,
+      "thread_damage": 4
+    }
+  },
+  "latency_ms": {
+    "mean": 13.050774749867092,
+    "p50": 12.953872501384467,
+    "p95": 14.417579797373037
+  },
+  "evaluated_at": "2026-11-24T16:56:32"
+}

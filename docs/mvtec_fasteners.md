@@ -41,3 +41,27 @@ Do not tune against this test split.
 "Rejected" here means FAIL or REVIEW: of the 28 caught, 16 were FAIL and 12 REVIEW.
 All 16 parts whose true verdict is FAIL were caught (2 only as REVIEW). Of the 3 passed,
 2 should have been REVIEW and 1 PASS_WITH_NOTE.
+
+## Anomaly detector (`vision.anomaly=true`)
+
+`training/train_anomaly.py` learns from good parts only (368 images in the bank, 91 for the threshold); ResNet18
+features, nearest-neighbour memory bank, one TorchScript file. A part unlike the good ones gets an unnamed `anomaly`,
+which can raise PASS to REVIEW but never causes FAIL. Off by default.
+Rebuild: `--backbone resnet18 --size 512 --k 2`. Requires the same resize and camera set-up as the line.
+
+Validation only (31 defective, 81 good); the test split was already used for YOLO and has not been scored again.
+
+| detector | defective passed | good rejected | laptop ms |
+|---|---|---|---|
+| YOLO alone | 3 | 1 | 7.5 |
+| anomaly alone, 512 px, k=2 | 2 | 3 | 6.3 |
+| YOLO + anomaly, 384 px, k=3 | 3 | 2 | 12.5 |
+| YOLO + anomaly, 384 px, k=2 | 2 | 2 | 13.1 |
+| **YOLO + anomaly, 512 px, k=2 (chosen)** | **0** | 4 | 13.3 |
+
+Seven configurations (backbone, size, rotated copies, k) were compared on these same 31 defective images, on which
+YOLO was also chosen, so 0 of 31 is optimistic; even unbiased it would allow a miss rate up to about 11% (95%).
+There is no untouched MVTec data left to confirm it: use new own parts (`live_test.py`).
+The threshold is a distance, so expect false alarms after any lighting or camera change: rebuild from photos taken
+on the rig. In `live_test.py`, anomaly-only finds are listed under `low_confidence`; use `defective_verdict_pass`.
+Not yet run on the Jetson.

@@ -8,7 +8,7 @@ from training.prepare_mvtec import CLASS_OF, build, mask_boxes  # noqa: E402
 
 def test_profile_covers_mapping():
     p = load_profile("mvtec_fasteners")
-    assert set(CLASS_OF.values()) == set(p["classes"]) == set(p["sop"]) == set(p["severity"]["classes"])
+    assert set(CLASS_OF.values()) == set(p["classes"]) == set(p["sop"]) - {"anomaly"} == set(p["severity"]["classes"])
 
 
 def test_mask_boxes_merge_specks_but_not_far_regions():

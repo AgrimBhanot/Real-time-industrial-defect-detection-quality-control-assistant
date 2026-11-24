@@ -104,6 +104,22 @@ class UltralyticsDetector:
 
 
 def build_detector(cfg: Config, backend: Optional[str] = None):
+    """vision.anomaly: false = named defects only; true = also flag unfamiliar parts; only = anomaly alone."""
+    v = cfg.section("vision")
+    mode = v.get("anomaly", False)
+    if mode not in (False, True, "only"):
+        raise ValueError(f"vision.anomaly must be true, false or 'only', got {mode!r}")
+    if not mode:
+        return _build_named(cfg, backend)
+    from qc.vision.anomaly import AnomalyModel, AnomalyOnly, HybridDetector
+
+    base = None if mode == "only" else _build_named(cfg, backend)
+    model = AnomalyModel(cfg.path(v.get("weights_dir", "models/vision/{profile}")), v.get("device", 0),
+                         bool(v.get("half", True)))
+    return HybridDetector(base, model) if base else AnomalyOnly(model)
+
+
+def _build_named(cfg: Config, backend: Optional[str] = None):
     v = cfg.section("vision")
     backend = backend or v.get("backend", "tensorrt")
     names = cfg.profile["classes"]

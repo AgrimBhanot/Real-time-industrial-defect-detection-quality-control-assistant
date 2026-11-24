@@ -1,0 +1,37 @@
+{
+  "profile": "mvtec_fasteners",
+  "backbone": "resnet18",
+  "size": 512,
+  "bank_per_product": 8000,
+  "rot": 1,
+  "k": 2.0,
+  "seed": 0,
+  "products": [
+    "metal_nut",
+    "screw"
+  ],
+  "thresholds": {
+    "metal_nut": 0.5473186084213115,
+    "screw": 0.4606114150096579
+  },
+  "n_bank_images": 368,
+  "n_calibration_images": 91,
+  "built_at": "2026-11-24T17:03:14",
+  "val": {
+    "metal_nut": {
+      "defective": 13,
+      "missed": 0,
+      "good": 33,
+      "false_alarms": 1,
+      "auroc": 1.0
+    },
+    "screw": {
+      "defective": 18,
+      "missed": 2,
+      "good": 48,
+      "false_alarms": 2,
+      "auroc": 0.9861111111111112
+    }
+  },
+  "val_wrong_product": 0
+}

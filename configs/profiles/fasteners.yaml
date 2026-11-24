@@ -35,6 +35,10 @@ mention_patterns:
   rust: ["rust", "corrosion", "corroded"]
 
 sop:
+  anomaly:
+    meaning: part looks unlike the known good parts, cause not identified
+    causes: [unidentified surface or shape change, wrong part, dirt or lighting change]
+    actions: [inspect the marked area by hand, check lighting and part type]
   thread_damage:
     meaning: stripped, flattened or missing threads
     causes: [worn thread-rolling dies, handling impact, mis-fed blanks]

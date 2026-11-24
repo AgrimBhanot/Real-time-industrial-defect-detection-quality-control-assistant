@@ -35,3 +35,7 @@ by `training/prepare_deeppcb.py` and is not redistributed in this repository.
 Categories `screw` and `metal_nut` of the MVTec Anomaly Detection dataset, https://www.mvtec.com/company/research/datasets/mvtec-ad,
 CC BY-NC-SA 4.0 (no commercial use). Images are not redistributed in this repository. Cite: Bergmann et al.,
 "MVTec AD - A Comprehensive Real-World Dataset for Unsupervised Anomaly Detection", CVPR 2019.
+
+## Anomaly detector backbone
+ResNet18 with ImageNet weights from torchvision (BSD-3-Clause code; ImageNet itself is for non-commercial research).
+Method after PatchCore (Roth et al., "Towards Total Recall in Industrial Anomaly Detection", CVPR 2022), own code.

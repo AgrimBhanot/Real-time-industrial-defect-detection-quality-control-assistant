@@ -1,0 +1,15 @@
+### Detection on `val` (anomaly, IoU>=0.5, conf>=0.25)
+
+| class | P | R | F1 | hard-case R | TP | FP | FN |
+|---|---|---|---|---|---|---|---|
+| tip_damage | 0.000 | 0.000 | 0.000 | 0.000 | 0 | 0 | 4 |
+| scratch | 0.000 | 0.000 | 0.000 | 0.000 | 0 | 0 | 14 |
+| thread_damage | 0.000 | 0.000 | 0.000 | 0.000 | 0 | 0 | 8 |
+| bent | 0.000 | 0.000 | 0.000 | 0.000 | 0 | 0 | 4 |
+| discolouration | 0.000 | 0.000 | 0.000 | 0.000 | 0 | 0 | 3 |
+| flipped | 0.000 | 0.000 | 0.000 | 0.000 | 0 | 0 | 3 |
+| **macro** | 0.000 | 0.000 | 0.000 | | | | |
+
+Unit level: escape rate 12.9% of 31 defective units; false-reject rate 1.2% of 81 clean units.
+Vision latency: mean 4.9 ms, p95 5.5 ms.
+Board groups all: micro P 0.000, R 0.000; escapes 4/31, false rejects 1/81.

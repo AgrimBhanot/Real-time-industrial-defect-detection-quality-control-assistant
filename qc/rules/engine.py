@@ -66,8 +66,10 @@ class RuleEngine:
             d.size_unit = self.size_unit
             d.zone = self.zone(d, w, h)
             d.severity, why = self.severity(d.defect, d.size)
-            d.needs_review = d.confidence < self.review_below
-            if d.needs_review:
+            d.needs_review = d.confidence < self.review_below or d.defect == "anomaly"
+            if d.defect == "anomaly":
+                why = "anomaly: unlike the good parts, cause not identified [human review]"
+            elif d.needs_review:
                 why += f" [conf {d.confidence:.2f} < {self.review_below:.2f}: human review]"
             trace.append(why)
         return trace

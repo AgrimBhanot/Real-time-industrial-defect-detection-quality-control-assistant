@@ -25,6 +25,7 @@ vision:
   imgsz: 640
   conf: 0.25
   use_class_conf: true            # apply the profile's class_conf (false = vision.conf for every class)
+  anomaly: false                  # true: also send parts unlike the good ones to REVIEW | only: without YOLO
   iou: 0.5
   half: true
   device: 0
