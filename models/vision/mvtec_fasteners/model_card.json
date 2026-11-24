@@ -1,0 +1,37 @@
+{
+  "profile": "mvtec_fasteners",
+  "base_model": "yolo11n.pt",
+  "data": "data/datasets/mvtec_fasteners/dataset.yaml",
+  "epochs": 120,
+  "imgsz": 960,
+  "batch": 8,
+  "augmentation": {
+    "degrees": 180.0,
+    "shear": 0.0,
+    "perspective": 0.0,
+    "translate": 0.1,
+    "scale": 0.3,
+    "fliplr": 0.5,
+    "flipud": 0.5,
+    "mosaic": 1.0,
+    "close_mosaic": 10,
+    "hsv_h": 0.01,
+    "hsv_s": 0.3,
+    "hsv_v": 0.3
+  },
+  "run_dir": "runs/train/mvtec_fasteners/n960r4",
+  "trained_at": "2026-11-24T06:29:26",
+  "platform": "x86_64",
+  "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+  "versions": {
+    "ultralytics": "8.3.253",
+    "torch": "2.8.0+cu126"
+  },
+  "val_metrics": {
+    "metrics/precision(B)": 0.8866939126653256,
+    "metrics/recall(B)": 0.795907093318327,
+    "metrics/mAP50(B)": 0.8458195480815603,
+    "metrics/mAP50-95(B)": 0.4764616622164963,
+    "fitness": 0.4764616622164963
+  }
+}
