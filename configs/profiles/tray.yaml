@@ -1,0 +1,38 @@
+# Live camera tray of nuts, bolts and washers: finds and counts parts, checks each for rust-coloured surface.
+# Part model: training/make_tray_dataset.py (rearranged real parts). Rust check: qc/vision/tray.py (colour rule, no model).
+name: tray
+title: live tray of nuts, bolts and washers
+label: Live camera tray
+station: QC-CAM-1
+dataset: own camera view, rearranged real parts (training/make_tray_dataset.py)
+
+classes: [rust]
+part_types: [nut, bolt, washer]
+zones: {rows: 3, cols: 3}
+app:
+  vision: {kind: tray, imgsz: 640, conf: 0.6}
+  source: {type: camera, fps_limit: 0, camera: {kind: csi, width: 1920, height: 1080, trigger: parts, reconnect_s: 0}}
+  logging: {save_frames: all}
+tray:
+  roi: [0.0, 0.0, 0.92, 1.0]       # inspected area (fractions): excludes the box at the right edge of the mat
+  rust: {hue: [4, 24], min_sat: 60, value: [35, 150], min_part_frac: 0.03, erode: 9}
+
+severity:
+  confidence_review_below: 0.40
+  size_thresholds: {rust: [0.05, 0.25]}   # share of the part's visible surface
+  classes:
+    rust: {base: medium, size_rule: three_level}
+
+decision:
+  fail_if_any: high
+  fail_if_medium_count_at_least: 2
+  review_if_medium_count_at_least: 1
+
+mention_patterns:
+  rust: ["rust", "rusted", "corrosion", "corroded"]
+
+sop:
+  rust:
+    meaning: rust-coloured corrosion on the part surface
+    causes: [inadequate plating or oiling, humid storage]
+    actions: [check plating thickness, review storage humidity and oiling]

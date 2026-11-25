@@ -1,0 +1,91 @@
+# Rolled steel sheet, GC10-DET (CC BY 4.0), split by coil (training/prepare_gc10.py).
+# Severity policy and SOP text are engineering defaults, not a standard.
+name: steel_sheet
+title: rolled steel sheet surface inspection
+label: Rolled steel sheet
+station: QC-LINE-3
+dataset: GC10-DET, own coil-grouped split
+
+classes: [crease, crescent_gap, inclusion, oil_spot, punching_hole, rolled_pit, silk_spot, waist_folding, water_spot, welding_line]
+px_per_mm: null
+zones: {rows: 3, cols: 3}
+augmentation: {hsv_h: 0.0, hsv_s: 0.0, hsv_v: 0.3}
+app:
+  vision: {imgsz: 640}
+  source: {type: folder, fps_limit: 0.5}
+
+severity:
+  confidence_review_below: 0.40
+  size_thresholds:                 # replaced by training/calibrate_severity.py
+    inclusion: [0.002, 0.01]
+    oil_spot: [0.01, 0.06]
+    silk_spot: [0.02, 0.15]
+    water_spot: [0.02, 0.1]
+  classes:
+    crease:        {base: high}
+    crescent_gap:  {base: high}
+    inclusion:     {base: medium, size_rule: three_level}
+    oil_spot:      {base: low, size_rule: escalate_only}
+    punching_hole: {base: high}
+    rolled_pit:    {base: high}
+    silk_spot:     {base: low, size_rule: escalate_only}
+    waist_folding: {base: high}
+    water_spot:    {base: low, size_rule: escalate_only}
+    welding_line:  {base: low}     # a coil joint, tracked so it can be cut out, not a surface fault
+
+decision:
+  fail_if_any: high
+  fail_if_medium_count_at_least: 2
+  review_if_medium_count_at_least: 1
+
+mention_patterns:
+  crescent_gap: ["crescent gap", "crescent_gap"]
+  oil_spot: ["oil spot", "oil_spot", "oil spots"]
+  punching_hole: ["punching hole", "punching_hole"]
+  rolled_pit: ["rolled pit", "rolled_pit"]
+  silk_spot: ["silk spot", "silk_spot"]
+  waist_folding: ["waist folding", "waist_folding"]
+  water_spot: ["water spot", "water_spot"]
+  welding_line: ["welding line", "welding_line", "weld line"]
+
+sop:
+  crease:
+    meaning: vertical fold across the strip
+    causes: [uncoiling tension shock, strip tracking error]
+    actions: [check uncoiler tension, check strip tracking]
+  crescent_gap:
+    meaning: crescent-shaped missing edge
+    causes: [side trimmer misalignment, worn trimming knife]
+    actions: [align side trimmer, replace trimming knife]
+  inclusion:
+    meaning: foreign particle pressed into the surface
+    causes: [scale residue, slag from casting]
+    actions: [check descaling pressure, inspect slab quality]
+  oil_spot:
+    meaning: lubricant stain
+    causes: [excess rolling oil, wiper failure]
+    actions: [check wipers, reduce oil flow]
+  punching_hole:
+    meaning: unwanted punched hole
+    causes: [punch timing fault, sensor fault]
+    actions: [check punch timing, test position sensor]
+  rolled_pit:
+    meaning: periodic pit or bulge from a roll
+    causes: [damaged work roll, debris on roll]
+    actions: [inspect work roll, clean or change roll]
+  silk_spot:
+    meaning: local wavy streak
+    causes: [uneven roll temperature, uneven pressure]
+    actions: [check roll temperature, check pressure profile]
+  waist_folding:
+    meaning: fold caused by low-carbon strip buckling
+    causes: [strip buckling, incorrect tension]
+    actions: [check tension setting, check levelling rolls]
+  water_spot:
+    meaning: stain from residual water
+    causes: [poor drying, leaking nozzle]
+    actions: [check air-knife drying, inspect nozzles]
+  welding_line:
+    meaning: weld joining two coils
+    causes: [normal coil change]
+    actions: [mark joint for cut-out, confirm weld tracking]

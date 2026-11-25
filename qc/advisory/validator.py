@@ -113,6 +113,61 @@ def mentioned_classes(text: str, profile: dict) -> set[str]:
     return {c for c in profile["classes"] if any(p.search(text) for p in _patterns(profile, c))}
 
 
+_LEAD = re.compile(r"^\W*(?:the\s+)?(?:unit|part|tray|board|sheet|it)?\s*(?:\S+\s+)?(?:has\s+|is\s+)?"
+                   r"(?:fail(?:ed|s)?|pass(?:ed|es)?|review)\b(?:\s+(?:with\s+note|inspection))?(?:\s+(?:with|due to|because of))?\W*",
+                   re.IGNORECASE)
+
+
+def verdict_conflict(text: str, result: str) -> bool:
+    """True when the text states a verdict other than the rule engine's."""
+    said = set()
+    if re.search(r"\b(?:unit|part|tray|board|sheet|it|inspection)\s+(?:\S+\s+)?(?:has\s+)?fail(?:ed|s)\b", text, re.I) \
+            or re.match(r"\W*fail(?:ed)?\b", text, re.I) or re.search(r"\bFAIL\b", text):
+        said.add("FAIL")
+    if re.search(r"\b(?:unit|part|tray|board|sheet|it|inspection)\s+(?:\S+\s+)?(?:has\s+)?pass(?:ed|es)\b", text, re.I) \
+            or re.match(r"\W*pass(?:ed)?\b", text, re.I) or re.search(r"\bPASS(?:_WITH_NOTE)?\b", text):
+        said.add("PASS")
+    if re.match(r"\W*review\b", text, re.I) or re.search(r"\bREVIEW\b", text):
+        said.add("REVIEW")
+    return bool(said - {"PASS" if result.startswith("PASS") else result})
+
+
+def _fix_verdict(advice: dict, record: InspectionRecord, profile: dict, notes: Optional[list]) -> list[str]:
+    """A wrong verdict is an error (strict) or is corrected from the record and noted (repair mode)."""
+    result = record.inspection_result
+    for k in ("summary", "log_entry"):
+        if not verdict_conflict(advice[k], result):
+            continue
+        if notes is None:
+            return [f"{k} states a verdict other than {result}"]
+        if k == "summary":
+            rest = _LEAD.sub("", advice[k], count=1).strip()
+            if not rest or verdict_conflict(rest, result):
+                worst = record.detections[0] if record.detections else None
+                rest = f"{worst.defect} in zone {worst.zone}." if worst else "see findings."
+            advice[k] = f"{result}: {rest}"
+        else:
+            advice[k] = re.sub(r"\b(?:FAIL(?:ED)?|PASS(?:ED|_WITH_NOTE)?|REVIEW)\b", result, advice[k], flags=re.I)
+        notes.append(f"verdict corrected in {k}")
+    label = result.replace("_", " ")
+    if not re.match(rf"\W*(?:{result}|{label})\b", advice["summary"], re.I):
+        rest = _LEAD.sub("", advice["summary"], count=1).strip() or advice["summary"]
+        advice["summary"] = f"{result}: {rest}"  # formatting only: same verdict, uniform lead
+    return []
+
+
+def _drop_name_causes(advice: dict, record: InspectionRecord, profile: dict, notes: Optional[list]) -> None:
+    """A defect's own name is not a cause: replace it with the SOP's causes for the units' defects."""
+    names = {c.replace("_", " ").replace("-", " ").lower() for c in profile["classes"]}
+    keep = [c for c in advice["likely_causes"] if c.strip(". ").replace("_", " ").replace("-", " ").lower() not in names]
+    if len(keep) == len(advice["likely_causes"]) or notes is None:
+        return
+    for c in record.defect_classes:
+        keep += [x for x in profile.get("sop", {}).get(c, {}).get("causes", []) if x not in keep]
+    advice["likely_causes"] = keep[:3] or ["not in SOP table"]
+    notes.append("defect name used as cause: replaced from the SOP")
+
+
 def validate(text: str, record: InspectionRecord, profile: dict,
              notes: Optional[list] = None) -> tuple[Optional[dict], list[str]]:
     """Strict checks on Llama output. If `notes` is a list, truncated output is repaired (loop collapsed,
@@ -153,4 +208,8 @@ def validate(text: str, record: InspectionRecord, profile: dict,
     invented = mentioned_classes(blob, profile) - set(record.defect_classes)
     if invented:
         return None, [f"mentions defect(s) not in record: {sorted(invented)}"]
+    errors = _fix_verdict(advice, record, profile, notes)
+    if errors:
+        return None, errors
+    _drop_name_causes(advice, record, profile, notes)
     return advice, []

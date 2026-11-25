@@ -62,8 +62,9 @@ class RuleEngine:
     def annotate(self, dets: list[Detection], w: int, h: int) -> list[str]:
         trace = []
         for d in dets:
-            d.size = self.measure(d, w, h)
-            d.size_unit = self.size_unit
+            if d.size_unit != "part_frac":  # tray checks already measured the share of the part's surface
+                d.size = self.measure(d, w, h)
+                d.size_unit = self.size_unit
             d.zone = self.zone(d, w, h)
             d.severity, why = self.severity(d.defect, d.size)
             d.needs_review = d.confidence < self.review_below or d.defect == "anomaly"
@@ -71,7 +72,7 @@ class RuleEngine:
                 why = "anomaly: unlike the good parts, cause not identified [human review]"
             elif d.needs_review:
                 why += f" [conf {d.confidence:.2f} < {self.review_below:.2f}: human review]"
-            trace.append(why)
+            trace.append(f"{d.part}: {why}" if d.part else why)
         return trace
 
     def decide(self, dets: list[Detection]) -> tuple[str, list[str]]:

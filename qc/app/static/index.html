@@ -24,7 +24,7 @@
   @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
   .panel h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
-  #stream { width: 100%; border-radius: 6px; background: #000; display: block; aspect-ratio: 4/3; object-fit: contain; }
+  .view { width: 100%; border-radius: 6px; background: #000; display: block; aspect-ratio: 4/3; object-fit: contain; }
   .badge { font-size: 34px; font-weight: 700; padding: 10px 14px; border-radius: 8px; color: #fff; text-align: center;
            background: var(--muted); }
   .badge.PASS, .badge.PASS_WITH_NOTE { background: var(--pass); }
@@ -60,9 +60,15 @@
   <span class="chip" id="counts">0 units</span>
 </header>
 <main>
-  <section class="panel">
-    <h2>Live inspection</h2>
-    <img id="stream" src="/stream.mjpg" alt="live inspection stream">
+  <section class="stack">
+    <div class="panel" id="camera-panel" hidden>
+      <h2>Live camera <span class="muted" id="camera-status"></span></h2>
+      <img id="camera" class="view" alt="live camera feed">
+    </div>
+    <div class="panel" id="inspection-panel">
+      <h2>Live inspection</h2>
+      <img id="stream" class="view" src="/stream.mjpg" alt="live inspection stream">
+    </div>
   </section>
   <section class="stack">
     <div class="panel">
@@ -132,6 +138,14 @@ async function tick() {
     $("llm").textContent = `advisory: ${s.advisory_backend}`;
     const total = Object.values(s.counts).reduce((a, b) => a + b, 0);
     $("counts").textContent = `${total} units · ${s.counts.FAIL || 0} fail · ${s.counts.REVIEW || 0} review`;
+    $("inspection-panel").hidden = !s.inspect;
+    $("camera-panel").hidden = !s.camera;
+    if (s.camera) {
+      if (!$("camera").src) $("camera").src = "/camera.mjpg";
+      $("camera").style.visibility = s.camera.live ? "visible" : "hidden";  // hide the last view of a dead camera
+      $("camera-status").textContent = s.camera.live ? `${s.camera.name} · ${fmt(s.fps)} FPS` : `NO SIGNAL: ${s.camera.error || "connecting ..."}`;
+    }
+    if (!s.inspect) $("badge").textContent = "CAMERA ONLY";
     const r = s.record;
     if (r) {
       $("badge").className = `badge ${r.inspection_result}`;

@@ -6,11 +6,13 @@ import threading
 import time
 from pathlib import Path
 
+import cv2
 from flask import Flask, Response, jsonify, request, send_from_directory
 
 from qc.advisory.summary import shift_summary
 from qc.config import Config
 from qc.pipeline import Pipeline
+from qc.sources import CameraSource
 
 STATIC = Path(__file__).parent / "static"
 
@@ -36,6 +38,24 @@ def create_app(pipe: Pipeline, cfg: Config) -> Flask:
 
         return Response(frames(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
+    @app.get("/camera.mjpg")
+    def camera():
+        """Raw live view: every camera frame, not only inspected units."""
+        def frames():
+            last = None
+            while True:
+                img = getattr(pipe.source, "latest", None)
+                if img is not None and img is not last:
+                    last = img
+                    ok, jpg = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 80])
+                    if ok:
+                        yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + jpg.tobytes() + b"\r\n"
+                time.sleep(1 / 30)
+
+        if not isinstance(pipe.source, CameraSource):
+            return Response("source is not a camera", status=404)
+        return Response(frames(), mimetype="multipart/x-mixed-replace; boundary=frame")
+
     @app.get("/api/state")
     def state():
         s = pipe.state
@@ -48,7 +68,11 @@ def create_app(pipe: Pipeline, cfg: Config) -> Flask:
         w = pipe.worker
         body.update({
             "profile": cfg.profile_name, "title": cfg.profile.get("title"),
-            "vision_backend": pipe.detector.backend,
+            "vision_backend": pipe.detector.backend if pipe.detector else "off (camera only)",
+            "inspect": pipe.inspect,
+            "camera": ({"live": pipe.source.latest is not None, "error": s.source_error,
+                        "name": f"{pipe.source.kind} {pipe.source.index}"}
+                       if isinstance(pipe.source, CameraSource) else None),
             "advisory_backend": pipe.advisor.backend if w else "disabled",
             "advice_pending": w.q.unfinished_tasks if w else 0, "advice_dropped": w.dropped if w else 0,
             "telemetry": pipe.telemetry.snapshot() if pipe.telemetry else {},
@@ -76,6 +100,7 @@ def create_app(pipe: Pipeline, cfg: Config) -> Flask:
 
 def serve(cfg: Config) -> None:
     pipe = Pipeline(cfg)
+    pipe.keep_alive = True
     threading.Thread(target=pipe.run, name="inspection", daemon=True).start()
     srv = cfg.section("server")
     host, port = srv.get("host", "0.0.0.0"), int(srv.get("port", 8000))

@@ -128,6 +128,12 @@ def _build_named(cfg: Config, backend: Optional[str] = None):
     if backend not in WEIGHT_FILES:
         raise ValueError(f"unknown vision.backend {backend!r}; choose from {list(WEIGHT_FILES) + ['groundtruth']}")
     weights = cfg.path(v.get("weights_dir", "models/vision/{profile}")) / WEIGHT_FILES[backend]
+    if v.get("kind", "defects") == "tray":
+        from qc.vision.tray import TrayDetector
+
+        return TrayDetector(backend, weights, cfg.profile["part_types"], imgsz=int(v.get("imgsz", 640)),
+                            conf=float(v.get("conf", 0.6)), iou=float(v.get("iou", 0.5)), half=bool(v.get("half", True)),
+                            device=v.get("device", 0), tray=cfg.profile.get("tray"))
     return UltralyticsDetector(backend, weights, names, imgsz=int(v.get("imgsz", 640)),
                                conf=float(v.get("conf", 0.25)), iou=float(v.get("iou", 0.5)),
                                half=bool(v.get("half", True)), device=v.get("device", 0),

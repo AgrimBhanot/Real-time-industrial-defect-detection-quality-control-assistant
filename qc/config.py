@@ -64,7 +64,16 @@ class Config:
         return self.app.get(name, {})
 
 
+def _merge(base: dict, extra: dict) -> dict:
+    for k, v in extra.items():
+        base[k] = _merge(base[k], v) if isinstance(v, dict) and isinstance(base.get(k), dict) else v
+    return base
+
+
 def load_config(app_path: str | Path | None = None, overrides: Iterable[str] = ()) -> Config:
+    """configs/app.yaml < the profile's own `app:` section (e.g. its model input size) < CLI overrides."""
     app = yaml.safe_load(resolve(app_path or "configs/app.yaml").read_text())
-    app = apply_overrides(copy.deepcopy(app), overrides)
-    return Config(app=app, profile=load_profile(app["profile"]))
+    overrides = list(overrides or ())
+    profile = load_profile(apply_overrides(copy.deepcopy(app), overrides)["profile"])
+    app = _merge(app, copy.deepcopy(profile.get("app") or {}))
+    return Config(app=apply_overrides(app, overrides), profile=profile)

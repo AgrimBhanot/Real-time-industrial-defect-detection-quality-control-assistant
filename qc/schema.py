@@ -19,6 +19,7 @@ class Detection:
     zone: str = ""
     severity: str = ""
     needs_review: bool = False
+    part: str = ""  # tray inspection: which part the defect is on, e.g. "washer 2"
 
     @property
     def area_px(self) -> float:
@@ -38,6 +39,26 @@ class InspectionRecord:
     rule_trace: list = field(default_factory=list)
     context: dict = field(default_factory=dict)
     timings_ms: dict = field(default_factory=dict)
+    parts: list = field(default_factory=list)   # tray inspection: [{id, type, confidence, bbox}]
+    gt_result: Optional[str] = None             # verdict the same rules give the dataset's own labels, if labelled
+    gt_defects: list = field(default_factory=list)
+
+    @property
+    def part_counts(self) -> dict:
+        out: dict = {}
+        for p in self.parts:
+            out[p["type"]] = out.get(p["type"], 0) + 1
+        return out
+
+    @property
+    def gt_outcome(self) -> Optional[str]:
+        """How the verdict compares with the labels: ok | escape (bad unit passed) | false_reject."""
+        if self.gt_result is None:
+            return None
+        ok = ("PASS", "PASS_WITH_NOTE")
+        if (self.gt_result in ok) == (self.inspection_result in ok):
+            return "ok"
+        return "escape" if self.inspection_result in ok else "false_reject"
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -47,8 +68,10 @@ class InspectionRecord:
         return {
             "unit_id": self.unit_id,
             "inspection_result": self.inspection_result,
+            **({"parts_on_tray": self.part_counts} if self.parts else {}),
             "detections": [
                 {
+                    **({"part": d.part} if d.part else {}),
                     "defect": d.defect,
                     "severity": d.severity,
                     "confidence": round(d.confidence, 2),
@@ -100,6 +123,7 @@ class AdviceResult:
     prompt_tokens: Optional[int] = None
     generated_tokens: Optional[int] = None
     repaired: bool = False             # truncated output repaired (loop collapsed / JSON closed), then validated
+    cached_tokens: Optional[int] = None  # prompt tokens reused from the previous prompt (KV prefix cache)
     loop_stop: bool = False            # the server stopped generation because the output was repeating
     queue_ms: Optional[float] = None   # waiting behind other units in the advisory queue
     e2e_ms: Optional[float] = None     # frame captured -> validated advice ready (shown in the UI)

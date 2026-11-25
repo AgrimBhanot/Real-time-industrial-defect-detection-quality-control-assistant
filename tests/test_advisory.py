@@ -21,7 +21,7 @@ def test_extract_json_with_chatter():
 
 def test_validate_accepts_grounded(record, profile):
     advice, errors = validate(json.dumps(GOOD), record, profile)
-    assert errors == [] and advice["summary"].startswith("Unit failed")
+    assert errors == [] and advice["summary"].startswith("FAIL: ")
 
 
 def test_validate_rejects_invented_defect(record, profile):
@@ -120,3 +120,41 @@ def test_missing_log_entry_is_filled_and_flagged(record, tmp_path):
     assert res.valid and res.repaired and not res.fallback and res.backend == "executorch"
     assert res.advice["log_entry"].startswith("U-1 FAIL open")
     assert any("log_entry built from the record" in e for e in res.errors)
+
+
+def as_review(record):
+    import copy
+
+    r = copy.deepcopy(record)
+    r.inspection_result = "REVIEW"
+    return r
+
+
+def test_wrong_verdict_is_rejected_or_corrected(record, profile):
+    from qc.advisory.validator import verdict_conflict
+
+    r = as_review(record)
+    advice, errors = validate(json.dumps(GOOD), r, profile)  # strict: "Unit failed" on a REVIEW unit
+    assert advice is None and "verdict" in errors[0]
+    notes = []
+    advice, errors = validate(json.dumps(GOOD), r, profile, notes)
+    assert errors == [] and any("verdict corrected" in n for n in notes)
+    assert advice["summary"].startswith("REVIEW: ") and not verdict_conflict(advice["summary"], "REVIEW")
+    assert not verdict_conflict(advice["log_entry"], "REVIEW")
+
+
+def test_verdict_words_in_causes_are_not_conflicts():
+    from qc.advisory.validator import verdict_conflict
+
+    assert not verdict_conflict("REVIEW: oil stain, likely wiper failure.", "REVIEW")
+    assert not verdict_conflict("U-1 FAIL open A1", "FAIL")
+    assert not verdict_conflict("PASS WITH NOTE: one small pin-hole.", "PASS_WITH_NOTE")
+    assert verdict_conflict("The unit passed inspection.", "REVIEW")
+
+
+def test_defect_name_is_not_a_cause(record, profile):
+    bad = {**GOOD, "likely_causes": [record.defect_classes[0]]}
+    notes = []
+    advice, errors = validate(json.dumps(bad), record, profile, notes)
+    assert errors == [] and notes
+    assert record.defect_classes[0] not in advice["likely_causes"]

@@ -39,3 +39,12 @@ CC BY-NC-SA 4.0 (no commercial use). Images are not redistributed in this reposi
 ## Anomaly detector backbone
 ResNet18 with ImageNet weights from torchvision (BSD-3-Clause code; ImageNet itself is for non-commercial research).
 Method after PatchCore (Roth et al., "Towards Total Recall in Industrial Anomaly Detection", CVPR 2022), own code.
+
+## MPDD (Phase 2, `metal_parts` profile)
+Metal Parts Defect Detection dataset, https://github.com/stepanje/MPDD, CC BY-NC-SA 4.0 (no commercial use). Images are not
+redistributed here. Cite: Jezek et al., "Deep learning-based defect detection of metal parts", ICUMT 2021.
+
+## GC10-DET (Phase 2, `steel_sheet` profile)
+Steel surface defects, https://github.com/lvxiaoming2019/GC10-DET-Metallic-Surface-Defect-Datasets; YOLO-format copy from
+https://huggingface.co/datasets/dronefreak/GC10-DET (listed as CC BY 4.0). Not redistributed here; re-split by coil. Cite: Lv et al.,
+"Deep Metallic Surface Defect Detection: The New Benchmark and Detection Network", Sensors 2020.

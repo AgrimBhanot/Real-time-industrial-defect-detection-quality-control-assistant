@@ -15,7 +15,7 @@ from qc.advisory import Advisor, AdvisoryWorker
 from qc.config import Config
 from qc.rules import RuleEngine
 from qc.schema import AdviceResult, InspectionRecord
-from qc.sources import Frame, build_source
+from qc.sources import CameraSource, Frame, build_source
 from qc.storage import InspectionDB
 from qc.telemetry import Telemetry
 from qc.vision import build_detector
@@ -31,6 +31,7 @@ class SharedState:
         self.advice: dict = {}
         self.advice_order: deque = deque(maxlen=keep_advice)
         self.fps = 0.0
+        self.source_error: Optional[str] = None
         self.counts: Counter = Counter()
 
     def set_frame(self, jpeg: bytes, record: InspectionRecord, fps: float) -> None:
@@ -52,7 +53,9 @@ class Pipeline:
         lg = cfg.section("logging")
         self.profile_name = cfg.profile_name
         self.source = build_source(cfg)
-        self.detector = build_detector(cfg)
+        self.inspect = bool(cfg.section("source").get("inspect", True))  # false: show the camera, inspect nothing
+        self.keep_alive = False  # serve(): keep retrying a missing camera instead of ending the run
+        self.detector = build_detector(cfg) if self.inspect else None
         self.rules = RuleEngine(cfg.profile)
         self.db = InspectionDB(cfg.path(lg.get("db", "runs/inspections.db")))
         self.save_frames = lg.get("save_frames", "defective")
@@ -67,7 +70,7 @@ class Pipeline:
         enabled = adv.get("enabled", True) if with_advisory is None else with_advisory
         self.submit_when = set(adv.get("submit_when", ["FAIL", "REVIEW", "PASS_WITH_NOTE"]))
         self.worker: Optional[AdvisoryWorker] = None
-        if enabled:
+        if enabled and self.inspect:
             self.advisor = Advisor(cfg)
             self.worker = AdvisoryWorker(self.advisor, self._on_advice, maxsize=int(adv.get("queue_size", 8)),
                                          prioritise=bool(adv.get("prioritise", False)))
@@ -119,16 +122,47 @@ class Pipeline:
             self.worker.submit(rec, frame.t_captured)
         return rec
 
+    def _frames(self):
+        while True:
+            try:
+                for frame in self.source:
+                    self.state.source_error = None
+                    yield frame
+                return
+            except RuntimeError as exc:
+                if not (self.keep_alive and isinstance(self.source, CameraSource)):
+                    raise
+                if self.state.source_error is None:
+                    log.warning("%s; retrying every 3 s", exc)
+                self.state.source_error = str(exc)
+                if self._halt.wait(3):
+                    return
+
+    def _preview(self) -> None:
+        last, fps = time.perf_counter(), 0.0
+        for _ in self._frames():
+            if self._halt.is_set():
+                return
+            now = time.perf_counter()
+            fps = 0.9 * fps + 0.1 / max(now - last, 1e-6) if fps else 1 / max(now - last, 1e-6)
+            last, self.state.fps = now, fps
+
     def run(self, max_frames: Optional[int] = None, on_record=None, render: bool = True) -> None:
         if self.worker:
             self.worker.start()
         if self.telemetry and self.telemetry.available:
             self.telemetry.start()
+        if not self.inspect:
+            try:
+                self._preview()
+            finally:
+                self.shutdown()
+            return
         self.detector.warmup()
         fps_ema, last, last_metrics = 0.0, time.perf_counter(), 0.0
         min_dt = 1.0 / self.fps_limit if self.fps_limit > 0 else 0.0
         try:
-            for i, frame in enumerate(self.source):
+            for i, frame in enumerate(self._frames()):
                 if self._halt.is_set() or (max_frames is not None and i >= max_frames):
                     break
                 rec = self.process(frame)

@@ -7,6 +7,8 @@ dataset: MVTec AD screw + metal_nut (training/prepare_mvtec.py); own split, not 
 
 classes: [tip_damage, scratch, thread_damage, bent, discolouration, flipped]
 px_per_mm: null
+app:
+  vision: {imgsz: 960}
 zones: {rows: 3, cols: 3}
 augmentation: {degrees: 180.0, hsv_h: 0.01, hsv_s: 0.3, hsv_v: 0.3}
 

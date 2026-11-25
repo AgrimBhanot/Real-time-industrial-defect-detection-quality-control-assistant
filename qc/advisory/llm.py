@@ -108,6 +108,7 @@ class LLMServerClient:
         self.proc: Optional[subprocess.Popen] = None
         self.replies: queue.Queue = queue.Queue()
         self.info: dict = {}
+        self.lock = threading.Lock()  # one generation at a time, also across inspection lines sharing this process
 
     @property
     def pid(self) -> Optional[int]:
@@ -186,7 +187,8 @@ class ExecuTorchLLM:
     """
     name = "executorch"
 
-    def __init__(self, cfg: Config):
+    def __init__(self, cfg: Config, server: Optional["LLMServerClient"] = None):
+        """server: an already running client to share (the model stays loaded when the inspection line changes)."""
         a = cfg.section("advisory")
         e = a.get("executorch", {})
         self.profile = cfg.profile
@@ -205,18 +207,21 @@ class ExecuTorchLLM:
         self.temperature = float(a.get("temperature", 0.2))
         self.max_new_tokens = int(e.get("max_new_tokens", 200))
         self.timeout = float(e.get("timeout_s", 180))
-        self.lock = threading.Lock()  # one generation at a time (advice worker + shift summary share it)
+        self.lock = threading.Lock()
         self.values = {
             "model": str(self.model), "tokenizer": str(self.tokenizer), "temperature": self.temperature,
             "seq_len": e.get("seq_len", 1536), "cpu_threads": e.get("cpu_threads", 4),
         }
         self.arg_templates = e.get("args", [])
-        self.server: Optional[LLMServerClient] = None
-        if self.mode == "server":
+        self.server: Optional[LLMServerClient] = server
+        self.owns_server = server is None
+        if self.mode == "server" and server is None:
             argv = [str(self.runner), f"--model_path={self.model}", f"--tokenizer_path={self.tokenizer}",
                     f"--cpu_threads={self.values['cpu_threads']}", f"--warmup={str(e.get('warmup', True)).lower()}"]
             self.server = LLMServerClient(argv, cfg.path(e.get("server_log", "runs/logs/llm_server.log")),
                                           start_timeout=float(e.get("start_timeout_s", 120)), call_timeout=self.timeout)
+        if self.server:
+            self.lock = self.server.lock  # advice worker, shift summary and other lines share one process
 
     @property
     def pid(self) -> Optional[int]:
@@ -236,6 +241,7 @@ class ExecuTorchLLM:
                 text, raw_stats = self.server.generate(prompt, self.max_new_tokens, self.temperature)
                 stats = stats_from_runner(raw_stats)
                 stats["loop_stop"] = raw_stats.get("loop_stop", 0)
+                stats["cached_tokens"] = raw_stats.get("cached_prompt_tokens")
             else:
                 text, stats = self._oneshot(prompt)
             stats["wall_ms"] = (time.perf_counter() - t0) * 1000
@@ -259,14 +265,14 @@ class ExecuTorchLLM:
         return self.complete(llama3_chat(build_messages(record, self.profile, self.compact)))
 
     def close(self) -> None:
-        if self.server:
+        if self.server and self.owns_server:
             self.server.close()
 
 
-def build_llm(cfg: Config):
+def build_llm(cfg: Config, server: Optional[LLMServerClient] = None):
     backend = cfg.section("advisory").get("backend", "template")
     if backend == "template":
         return TemplateLLM(cfg.profile)
     if backend == "executorch":
-        return ExecuTorchLLM(cfg)
+        return ExecuTorchLLM(cfg, server)
     raise ValueError(f"unknown advisory.backend {backend!r}")

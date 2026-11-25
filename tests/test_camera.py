@@ -49,3 +49,49 @@ def test_dead_camera_gives_up(monkeypatch):
     monkeypatch.setattr(cam, "_open", lambda: FakeCap([]))
     with pytest.raises(RuntimeError):
         next(iter(cam))
+
+
+def camera_cfg(tmp_path, *extra):
+    from qc.config import load_config
+
+    return load_config(overrides=["source.type=camera", "source.camera.reconnect_s=0", "advisory.enabled=false",
+                                  f"logging.db={tmp_path / 'qc.db'}", *extra])
+
+
+def test_latest_view_follows_every_frame_and_clears(monkeypatch):
+    cam = CameraSource(trigger=StableTrigger(frames=3), reconnect_s=0)
+    monkeypatch.setattr(cam, "_open", lambda: FakeCap([scene(7)] * 6))
+    it = iter(cam)
+    next(it)
+    assert cam.latest[0, 0, 0] == 7
+    with pytest.raises(RuntimeError):
+        next(it)
+    assert cam.latest is None
+
+
+def test_camera_only_mode_needs_no_model(tmp_path, monkeypatch):
+    pytest.importorskip("flask")
+    from qc.app.server import create_app
+    from qc.pipeline import Pipeline
+
+    cfg = camera_cfg(tmp_path, "source.inspect=false")
+    pipe = Pipeline(cfg, with_telemetry=False)
+    assert pipe.detector is None
+    s = create_app(pipe, cfg).test_client().get("/api/state").get_json()
+    assert s["camera"]["live"] is False and s["inspect"] is False
+    pipe.source.latest = scene(9)
+    r = create_app(pipe, cfg).test_client().get("/camera.mjpg", buffered=False)
+    assert b"image/jpeg" in next(r.response)
+
+
+def test_served_camera_is_retried(tmp_path, monkeypatch):
+    from qc.pipeline import Pipeline
+
+    pipe = Pipeline(camera_cfg(tmp_path, "source.inspect=false"), with_telemetry=False)
+    pipe.keep_alive = True
+    caps = iter([FakeCap([]), FakeCap([scene(3)])])
+    monkeypatch.setattr(pipe.source, "_open", lambda: next(caps))
+    errors = []
+    monkeypatch.setattr(pipe._halt, "wait", lambda t: errors.append(pipe.state.source_error))
+    frame = next(pipe._frames())
+    assert frame.image[0, 0, 0] == 3 and "camera read failed" in errors[0] and pipe.state.source_error is None

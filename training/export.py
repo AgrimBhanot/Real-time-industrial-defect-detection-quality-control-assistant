@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 
 def main() -> None:
@@ -18,7 +20,7 @@ def main() -> None:
     ap.add_argument("--profile", default="pcb")
     ap.add_argument("--weights", default=None)
     ap.add_argument("--to", choices=["onnx", "engine", "both"], default="onnx")
-    ap.add_argument("--imgsz", type=int, default=640)
+    ap.add_argument("--imgsz", type=int, default=None, help="default: the profile's vision.imgsz")
     ap.add_argument("--fp32", action="store_true", help="engine: FP32 instead of FP16")
     ap.add_argument("--int8", action="store_true", help="engine: INT8 with calibration on the dataset")
     ap.add_argument("--workspace", type=float, default=2.0, help="engine: TensorRT workspace GiB")
@@ -26,8 +28,13 @@ def main() -> None:
 
     from ultralytics import YOLO
 
+    from qc.config import load_config
+
+    if args.imgsz is None:
+        args.imgsz = int(load_config(overrides=[f"profile={args.profile}"]).section("vision").get("imgsz", 640))
     weights = Path(args.weights) if args.weights else ROOT / f"models/vision/{args.profile}/best.pt"
-    dest = ROOT / f"models/vision/{args.profile}"
+    # a candidate given with --weights is exported beside its weights, never over the deployed model
+    dest = weights.resolve().parent if args.weights else ROOT / f"models/vision/{args.profile}"
     dest.mkdir(parents=True, exist_ok=True)
     # engine first: a CPU ONNX export makes Ultralytics set CUDA_VISIBLE_DEVICES=-1 for the rest of the process
     targets = ["engine", "onnx"] if args.to == "both" else [args.to]

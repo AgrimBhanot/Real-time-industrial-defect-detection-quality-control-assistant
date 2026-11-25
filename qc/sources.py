@@ -22,6 +22,7 @@ class Frame:
     source: str
     label_path: Optional[str] = None
     t_captured: float = field(default_factory=time.perf_counter)
+    parts: list = field(default_factory=list)  # filled by the tray detector
 
 
 def label_for(image_path: Path) -> Optional[Path]:
@@ -80,9 +81,9 @@ class VideoSource:
                 return
 
 
-def csi_pipeline(width: int, height: int, fps: int, sensor_id: int = 0) -> str:
+def csi_pipeline(width: int, height: int, fps: int, sensor_id: int = 0, props: str = "") -> str:
     return (
-        f"nvarguscamerasrc sensor-id={sensor_id} ! "
+        f"nvarguscamerasrc sensor-id={sensor_id} {props} ! "
         f"video/x-raw(memory:NVMM),width={width},height={height},framerate={fps}/1 ! "
         "nvvidconv ! video/x-raw,format=BGRx ! videoconvert ! video/x-raw,format=BGR ! "
         "appsink drop=1 max-buffers=1"
@@ -124,18 +125,64 @@ class StableTrigger:
         return True
 
 
+class PartsTrigger:
+    """Tray inspection: fires once when the same parts lie still, and again only after a part was added, removed or moved.
+
+    Works on detected parts instead of pixels: one nut on a large tray barely changes the mean grey level.
+    """
+
+    def __init__(self, frames: int = 8, still_px: float = 12.0, moved_px: float = 40.0, **_):
+        self.frames, self.still_px, self.moved_px = frames, still_px, moved_px
+        self.prev: Optional[list] = None
+        self.ref: Optional[list] = None
+        self.n_still = 0
+
+    @staticmethod
+    def _keys(parts: list) -> list:
+        return [(p["type"], (p["bbox"][0] + p["bbox"][2]) / 2, (p["bbox"][1] + p["bbox"][3]) / 2) for p in parts]
+
+    @staticmethod
+    def same(a: list, b: list, tol: float) -> bool:
+        if len(a) != len(b):
+            return False
+        left = list(b)
+        for t, x, y in a:
+            d, i = min(((np.hypot(x - u, y - v), i) for i, (s, u, v) in enumerate(left) if s == t), default=(tol + 1, -1))
+            if d > tol:
+                return False
+            left.pop(i)
+        return True
+
+    def update(self, parts: list) -> bool:
+        k = self._keys(parts)
+        prev, self.prev = self.prev, k
+        if prev is None or not self.same(k, prev, self.still_px):
+            self.n_still = 0
+            return False
+        self.n_still += 1
+        if self.n_still < self.frames:
+            return False
+        if self.ref is not None and self.same(k, self.ref, self.moved_px):
+            return False
+        self.ref = k
+        return bool(k)  # an emptied tray resets the reference but is not a unit
+
+
 class CameraSource:
     def __init__(self, kind: str = "usb", index: int = 0, width: int = 1280, height: int = 720, fps: int = 30,
-                 trigger: Optional[StableTrigger] = None, reconnect_s: float = 0.0, crop: str = "none"):
+                 trigger: Optional[StableTrigger] = None, reconnect_s: float = 0.0, crop: str = "none",
+                 props: str = ""):
         if crop not in ("none", "square"):
             raise ValueError(f"camera crop must be none or square, got {crop!r}")
-        self.crop = crop
+        self.crop, self.props = crop, props
+        self.latest: Optional[np.ndarray] = None  # newest view, for the live panel (also between triggers)
         self.trigger, self.reconnect_s = trigger, reconnect_s
         self.kind, self.index, self.width, self.height, self.fps = kind, index, width, height, fps
 
     def _open(self) -> cv2.VideoCapture:
         if self.kind == "csi":
-            cap = cv2.VideoCapture(csi_pipeline(self.width, self.height, self.fps, self.index), cv2.CAP_GSTREAMER)
+            cap = cv2.VideoCapture(csi_pipeline(self.width, self.height, self.fps, self.index, self.props),
+                                   cv2.CAP_GSTREAMER)
         else:
             cap = cv2.VideoCapture(self.index, cv2.CAP_V4L2)
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
@@ -167,16 +214,19 @@ class CameraSource:
             while True:
                 ok, img = cap.read()
                 if not ok:
+                    self.latest = None
                     cap.release()
                     cap = self._reopen()
                     continue
                 if self.crop == "square":
                     img = center_square(img)
+                self.latest = img
                 if self.trigger is not None and not self.trigger.update(img):
                     continue
                 yield Frame(img, f"camera:{self.kind}:{self.index}#{idx}", "camera")
                 idx += 1
         finally:
+            self.latest = None  # the live panel must not show a dead camera's last view
             cap.release()
 
 
@@ -194,5 +244,6 @@ def build_source(cfg: Config):
                             int(c.get("height", 720)), int(c.get("fps", 30)),
                             trigger=StableTrigger(**(c.get("trigger_params") or {}))
                             if c.get("trigger", "none") == "stable" else None,
-                            reconnect_s=float(c.get("reconnect_s", 0)), crop=c.get("crop", "none"))
+                            reconnect_s=float(c.get("reconnect_s", 0)), crop=c.get("crop", "none"),
+                            props=c.get("props", ""))
     raise ValueError(f"unknown source.type {kind!r}")

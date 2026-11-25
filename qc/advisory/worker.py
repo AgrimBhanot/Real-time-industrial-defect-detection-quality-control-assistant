@@ -21,11 +21,11 @@ PRIORITY = {"PASS_WITH_NOTE": 0, "REVIEW": 1, "FAIL": 2}
 class Advisor:
     """record -> validated advice. Retries the LLM, then falls back to the SOP template (flagged as fallback)."""
 
-    def __init__(self, cfg: Config):
+    def __init__(self, cfg: Config, llm_server=None):
         a = cfg.section("advisory")
         self.profile = cfg.profile
         self.template = TemplateLLM(cfg.profile)
-        self.primary = build_llm(cfg)
+        self.primary = build_llm(cfg, llm_server)
         self.retries = int(a.get("retries", 1))
 
     @property
@@ -90,7 +90,7 @@ class Advisor:
             ttft_ms=stats.get("ttft_ms"), tok_s=stats.get("tok_s"),
             total_ms=stats.get("total_ms") or stats.get("wall_ms"), load_ms=stats.get("load_ms"),
             prompt_tokens=stats.get("prompt_tokens"), generated_tokens=stats.get("generated_tokens"), raw=raw,
-            loop_stop=bool(stats.get("loop_stop")),
+            loop_stop=bool(stats.get("loop_stop")), cached_tokens=stats.get("cached_tokens"),
         )
 
 
@@ -103,6 +103,7 @@ class AdvisoryWorker(threading.Thread):
         self.advisor, self.on_result = advisor, on_result
         self.q: queue.Queue = queue.Queue(maxsize=maxsize)
         self.dropped, self.prioritise = 0, prioritise
+        self.current: Optional[str] = None  # unit being written about right now
         self._halt = threading.Event()  # not "_stop": that name shadows a Thread internal used by join()
 
     def submit(self, record: InspectionRecord, t_captured: Optional[float] = None) -> None:
@@ -145,6 +146,7 @@ class AdvisoryWorker(threading.Thread):
             except queue.Empty:
                 continue
             try:
+                self.current = record.unit_id
                 t_start = time.perf_counter()
                 result = self.advisor.advise(record)
                 t_done = time.perf_counter()
@@ -156,4 +158,5 @@ class AdvisoryWorker(threading.Thread):
             except Exception:
                 log.exception("advisory failed for %s", record.unit_id)
             finally:
+                self.current = None
                 self.q.task_done()

@@ -1,0 +1,97 @@
+# Industrial metal parts from two public datasets: MVTec AD (metal nut, screw) and MPDD (brackets, connectors, tubes,
+# plates). Both CC BY-NC-SA 4.0, non-commercial; images are not redistributed here.
+# Severity policy and SOP text are engineering defaults, not a standard.
+name: metal_parts
+title: machined and painted metal part inspection
+label: Nuts, screws & metal parts
+station: QC-LINE-2
+dataset: MVTec AD screw + metal_nut, MPDD (training/prepare_metal_parts.py); own split
+
+classes: [tip_damage, scratch, thread_damage, deformation, discolouration, flipped, rust, hole, paint_defect, mismatch]
+px_per_mm: null
+zones: {rows: 3, cols: 3}
+augmentation: {degrees: 180.0, hsv_h: 0.01, hsv_s: 0.3, hsv_v: 0.3}
+app:
+  vision: {imgsz: 960}
+  source: {type: folder, fps_limit: 0.5}
+
+severity:
+  confidence_review_below: 0.40
+  size_thresholds:                 # replaced by training/calibrate_severity.py
+    scratch: [0.002, 0.02]
+    discolouration: [0.003, 0.02]
+    rust: [0.02, 0.15]
+    paint_defect: [0.003, 0.02]
+  classes:
+    tip_damage:     {base: medium}
+    scratch:        {base: medium, size_rule: three_level}
+    thread_damage:  {base: high}
+    deformation:    {base: high}
+    discolouration: {base: low, size_rule: escalate_only}
+    flipped:        {base: high}
+    rust:           {base: medium, size_rule: three_level}
+    hole:           {base: high}
+    paint_defect:   {base: medium, size_rule: three_level}
+    mismatch:       {base: high}
+
+decision:
+  fail_if_any: high
+  fail_if_medium_count_at_least: 2
+  review_if_medium_count_at_least: 1
+
+mention_patterns:
+  tip_damage: ["tip damage", "damaged tip", "tip_damage"]
+  scratch: ["scratch", "scratches", "scratched"]
+  thread_damage: ["thread damage", "damaged thread", "stripped thread", "thread_damage"]
+  deformation: ["deformation", "deformed"]
+  discolouration: ["discolouration", "discoloration", "discoloured"]
+  flipped: ["flipped", "upside down", "upside-down"]
+  rust: ["rust", "rusted", "corrosion", "corroded"]
+  paint_defect: ["paint defect", "paint_defect", "peeling paint"]
+  mismatch: ["mismatch", "mismatched"]
+
+sop:
+  anomaly:
+    meaning: part looks unlike the known good parts, cause not identified
+    causes: [unidentified surface or shape change, wrong part, dirt or lighting change]
+    actions: [inspect the marked area by hand, check lighting and part type]
+  tip_damage:
+    meaning: deformed or broken screw tip
+    causes: [worn pointing die, handling impact]
+    actions: [inspect pointing die, check drop heights]
+  scratch:
+    meaning: scratched surface
+    causes: [burrs on tooling, part-to-part contact]
+    actions: [inspect tooling surfaces, check chutes and bulk handling]
+  thread_damage:
+    meaning: stripped, flattened or cut thread
+    causes: [worn thread-rolling dies, handling impact]
+    actions: [inspect thread-rolling dies, gauge samples]
+  deformation:
+    meaning: bent, dented or flattened body
+    causes: [feeder jam, incorrect forming load]
+    actions: [check feeder, verify press settings]
+  discolouration:
+    meaning: stained or discoloured surface
+    causes: [coating contamination, residue]
+    actions: [check coating bath, check cleaning step]
+  flipped:
+    meaning: part lying wrong side up
+    causes: [feeder orientation fault]
+    actions: [check orienting feeder, re-orient the part]
+  rust:
+    meaning: surface corrosion
+    causes: [inadequate coating or oiling, humid storage]
+    actions: [check coating thickness, review storage humidity]
+  hole:
+    meaning: hole where the surface should be closed
+    causes: [drilling program error, welding burn-through]
+    actions: [check drilling program, verify welding current]
+  paint_defect:
+    meaning: missing or uneven paint
+    causes: [poor surface preparation, clogged spray nozzle]
+    actions: [check degreasing step, clean spray nozzles]
+  mismatch:
+    meaning: assembly joined or positioned incorrectly
+    causes: [fixture misalignment, wrong component loaded]
+    actions: [check fixture alignment, verify component loading]

@@ -1,12 +1,14 @@
 # Runtime configuration. Any key can be overridden from the CLI:
 #   python -m qc run --set vision.backend=groundtruth --set source.path=data/demo/pcb
-profile: pcb                      # pcb | fasteners  -> configs/profiles/<profile>.yaml
+profile: pcb                      # -> configs/profiles/<profile>.yaml
+lines: [tray, metal_parts, steel_sheet, pcb, mvtec_fasteners]   # inspection lines offered on the site
 
 source:
   type: folder                    # folder (simulated conveyor) | video | camera
   path: data/demo/{profile}/images
   shuffle: true
   loop: true
+  inspect: true                   # false: only show the live camera on the site (no detector, no Llama)
   fps_limit: 4                    # conveyor pace in units/s; 0 = as fast as possible
   camera:
     kind: usb                     # usb | csi
@@ -14,12 +16,14 @@ source:
     width: 1280
     height: 720
     fps: 30
+    props: ""                     # extra nvarguscamerasrc properties, e.g. "aelock=true awblock=true"
     crop: none                    # none | square (use the same setting for capture, live test and the demo)
-    trigger: none                 # none: every frame is a unit | stable: one unit per part that comes to rest
+    trigger: none                 # none: every frame | stable: one part at rest (pixels) | parts: tray of parts at rest
     trigger_params: {change: 8.0, still: 2.0, frames: 5}   # mean grey-level differences; tune on the rig
     reconnect_s: 10               # keep retrying a lost camera this long
 
 vision:
+  kind: defects                   # defects: the model finds defects | tray: it finds parts, each is then checked
   backend: tensorrt               # tensorrt | onnxruntime | torch | groundtruth (dev only: reads label files)
   weights_dir: models/vision/{profile}
   imgsz: 640
@@ -69,5 +73,6 @@ logging:
 
 server:
   host: 0.0.0.0
+  allow: ["127.0.0.0/8", "192.168.55.0/24"]   # who may open the site: the board itself and the USB-C link ([] = anyone)
   port: 8000
   stream_fps: 12

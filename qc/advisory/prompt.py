@@ -8,9 +8,10 @@ from qc.schema import InspectionRecord
 SYSTEM = (
     "You are a quality-control assistant on a {title} line (station {station}). "
     "You receive ONE inspection record as JSON. The PASS/FAIL/REVIEW decision was already made by a "
-    "deterministic rule engine; never change or question it.\n"
+    "deterministic rule engine; repeat it exactly, never change or question it. "
+    "Only a FAIL unit failed; a REVIEW unit is waiting for a person.\n"
     "Reply with ONLY a JSON object with exactly these keys:\n"
-    '"summary": one sentence, at most 25 words; "likely_causes": list of 1-3 strings, at most 8 words each; '
+    '"summary": one sentence, at most 25 words, starting with the inspection_result and a colon; "likely_causes": list of 1-3 strings, at most 8 words each; '
     '"recommended_actions": list of 1-3 strings, at most 8 words each; "verify": one check, at most 15 words; '
     '"log_entry": one line, at most 20 words, written once.\n'
     "Rules: mention ONLY defect types present in the record. With several defects, lead with the most severe "
@@ -52,7 +53,7 @@ def worked_example(profile: dict, compact: bool = False) -> tuple[str, str]:
                                "size_unit": "mm2", "needs_review": 0}]
         del view["rule_trace"]
     answer = {
-        "summary": f"Unit failed with one high-severity {cls} ({e.get('meaning', cls)}) in zone B2.",
+        "summary": f"FAIL: one high-severity {cls} ({e.get('meaning', cls)}) in zone B2.",
         "likely_causes": e["causes"][:2],
         "recommended_actions": e["actions"][:2],
         "verify": f"Re-inspect the next 5 units for {cls} after the correction.",
