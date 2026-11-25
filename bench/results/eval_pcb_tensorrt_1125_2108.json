@@ -1,0 +1,175 @@
+{
+  "profile": "pcb",
+  "backend": "tensorrt",
+  "split": "test",
+  "clean_split": "test_clean",
+  "iou_threshold": 0.5,
+  "conf_threshold": 0.25,
+  "n_images": 1000,
+  "n_defective_units": 500,
+  "n_clean_units": 500,
+  "class_conf": {},
+  "per_class": {
+    "open": {
+      "tp": 642,
+      "fp": 194,
+      "fn": 17,
+      "precision": 0.7679425837320574,
+      "recall": 0.9742033383915023,
+      "f1": 0.8588628762541806,
+      "hard_case_recall": 0.9575757575757575
+    },
+    "short": {
+      "tp": 429,
+      "fp": 106,
+      "fn": 49,
+      "precision": 0.8018691588785046,
+      "recall": 0.897489539748954,
+      "f1": 0.8469891411648568,
+      "hard_case_recall": 0.9333333333333333
+    },
+    "mousebite": {
+      "tp": 569,
+      "fp": 98,
+      "fn": 17,
+      "precision": 0.8530734632683659,
+      "recall": 0.9709897610921502,
+      "f1": 0.9082202713487629,
+      "hard_case_recall": 0.9866666666666667
+    },
+    "spur": {
+      "tp": 462,
+      "fp": 39,
+      "fn": 21,
+      "precision": 0.9221556886227545,
+      "recall": 0.9565217391304348,
+      "f1": 0.9390243902439025,
+      "hard_case_recall": 0.9752066115702479
+    },
+    "copper": {
+      "tp": 454,
+      "fp": 42,
+      "fn": 10,
+      "precision": 0.9153225806451613,
+      "recall": 0.978448275862069,
+      "f1": 0.9458333333333333,
+      "hard_case_recall": 0.9914529914529915
+    },
+    "pin-hole": {
+      "tp": 462,
+      "fp": 135,
+      "fn": 8,
+      "precision": 0.7738693467336684,
+      "recall": 0.9829787234042553,
+      "f1": 0.8659793814432989,
+      "hard_case_recall": 0.9661016949152542
+    }
+  },
+  "macro": {
+    "precision": 0.8390388036467519,
+    "recall": 0.9601052296048941,
+    "f1": 0.8941515656313892
+  },
+  "by_group_exposure": {
+    "seen": {
+      "tp": 811,
+      "fn": 51,
+      "fp": 53,
+      "defective": 132,
+      "escapes": 3,
+      "clean": 132,
+      "false_rejects": 2
+    },
+    "unseen": {
+      "tp": 2207,
+      "fn": 71,
+      "fp": 561,
+      "defective": 368,
+      "escapes": 0,
+      "clean": 368,
+      "false_rejects": 50
+    }
+  },
+  "hard_case_recall_overall": 0.9683944374209861,
+  "unit_level": {
+    "escape_rate": 0.006,
+    "false_reject_rate": 0.104,
+    "verdict_matrix_gt_to_pred": {
+      "FAIL": {
+        "FAIL": 496,
+        "REVIEW": 1
+      },
+      "PASS_WITH_NOTE": {
+        "PASS_WITH_NOTE": 2
+      },
+      "REVIEW": {
+        "PASS_WITH_NOTE": 1
+      },
+      "PASS": {
+        "PASS": 441,
+        "FAIL": 34,
+        "PASS_WITH_NOTE": 7,
+        "REVIEW": 18
+      }
+    }
+  },
+  "confusion_gt_to_pred": {
+    "open": {
+      "open": 633,
+      "mousebite": 9,
+      "missed": 16,
+      "short": 1
+    },
+    "mousebite": {
+      "mousebite": 563,
+      "open": 6,
+      "missed": 13,
+      "spur": 1,
+      "pin-hole": 3
+    },
+    "spur": {
+      "spur": 458,
+      "missed": 17,
+      "short": 5,
+      "mousebite": 2,
+      "copper": 1
+    },
+    "pin-hole": {
+      "pin-hole": 458,
+      "mousebite": 4,
+      "missed": 7,
+      "short": 1
+    },
+    "copper": {
+      "copper": 453,
+      "missed": 8,
+      "spur": 3
+    },
+    "background": {
+      "spur": 36,
+      "pin-hole": 135,
+      "copper": 41,
+      "open": 197,
+      "mousebite": 88,
+      "short": 101
+    },
+    "short": {
+      "short": 427,
+      "missed": 45,
+      "spur": 3,
+      "copper": 1,
+      "pin-hole": 1,
+      "mousebite": 1
+    }
+  },
+  "latency_ms": {
+    "mean": 21.37668454299524,
+    "p50": 22.334298500027217,
+    "p95": 23.238415800040002
+  },
+  "evaluated_at": "2026-11-25T21:07:59",
+  "ultralytics": {
+    "map50": 0.96876065489191,
+    "map50_95": 0.7419413078813216
+  }
+}
