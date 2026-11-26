@@ -15,7 +15,7 @@ app:
   logging: {save_frames: all}
 tray:
   roi: [0.0, 0.0, 0.92, 1.0]       # inspected area (fractions): excludes the box at the right edge of the mat
-  rust: {hue: [4, 24], min_sat: 60, value: [35, 150], min_part_frac: 0.03, erode: 9}
+  rust: {hue: [4, 21], min_sat: 70, value: [75, 220], min_part_frac: 0.04, erode: 9}
 
 severity:
   confidence_review_below: 0.40
