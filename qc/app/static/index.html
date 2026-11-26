@@ -3,117 +3,149 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
 <title>QC Inspector</title>
+<link rel="preload" href="/static/fonts/Figtree-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
-<header class="top">
-  <div class="brand"><span class="mark" aria-hidden="true"></span><b>QC Inspector</b></div>
-  <nav role="tablist" aria-label="Pages">
+<header class="topbar">
+  <a class="brand" href="#inspect" aria-label="QC Inspector, home">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="3" width="26" height="26" rx="8" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M3 12h4M25 12h4M3 20h4M25 20h4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="16" cy="16" r="4.5" fill="var(--note)"/></svg>
+    <span><b>QC Inspector</b><small>Jetson Orin Nano</small></span>
+  </a>
+  <nav class="tabs" role="tablist" aria-label="Pages">
     <button role="tab" data-page="inspect">Inspect</button>
     <button role="tab" data-page="log">Inspection log <span class="count" id="open-count" hidden></span></button>
     <button role="tab" data-page="analytics">Analytics</button>
     <button role="tab" data-page="system">System</button>
   </nav>
-  <div class="status">
-    <span class="pill" id="net-pill"></span>
-    <span class="pill" id="llm-pill"></span>
-    <label class="line-pick">Line <select id="line"></select></label>
+  <div class="bar-end">
+    <span class="chip" id="llm-chip"><i class="dot"></i><span></span></span>
+    <label class="line-pick"><span>Line</span><select id="line" aria-label="Inspection line"></select></label>
   </div>
 </header>
 <div class="alert" id="alert" role="alert" hidden></div>
 
-<main id="page-inspect" class="page" hidden>
-  <section class="kpis" id="kpis" aria-label="This session"></section>
-  <div class="cols">
-    <section class="panel viewer">
-      <div class="view-wrap">
-        <img id="view" alt="live inspection view">
-        <div class="view-msg" id="view-msg" hidden></div>
-      </div>
-      <div class="toolbar">
-        <button class="btn primary" id="play" aria-label="pause or play"></button>
-        <button class="btn" id="step">Next unit</button>
-        <button class="btn primary" id="inspect-now" hidden>Inspect now</button>
-        <label class="pace" id="pace-wrap">Pace <input type="range" id="pace" min="0" max="6" step="1"> <span id="pace-val"></span></label>
-        <span class="grow"></span>
-        <span class="muted" id="view-info"></span>
-      </div>
-      <div class="strip" id="strip" aria-label="latest units"></div>
-    </section>
-    <section class="side">
-      <div class="panel verdict" id="verdict">
-        <div class="v-word" id="v-word">Waiting</div>
-        <div class="v-why" id="v-why"></div>
-        <div class="v-meta"><span id="v-unit"></span><span id="v-label"></span></div>
-      </div>
-      <div class="panel" id="parts-panel" hidden>
-        <h2>Parts in view</h2>
-        <div class="parts" id="parts"></div>
-      </div>
-      <div class="panel">
-        <h2>Findings</h2>
-        <div id="findings"></div>
-      </div>
-      <div class="panel">
-        <h2>Advice from Llama <span class="muted" id="adv-unit"></span></h2>
-        <div id="advice"></div>
-      </div>
-    </section>
-  </div>
-</main>
-
-<main id="page-log" class="page" hidden>
-  <form class="panel filters" id="filters">
-    <div class="chips" id="f-results" role="group" aria-label="Result"></div>
-    <label>Line <select name="profile"></select></label>
-    <label>Defect <select name="defect"></select></label>
-    <label>Decision <select name="decision"></select></label>
-    <label>Against labels <select name="gt_outcome">
-      <option value="">any</option><option value="ok">agrees</option><option value="escape">missed defect</option><option value="false_reject">false reject</option>
-    </select></label>
-    <label>Session <select name="session"></select></label>
-    <label>From <input type="date" name="from"></label>
-    <label>To <input type="date" name="to"></label>
-    <label class="grow">Search <input type="search" name="q" placeholder="unit, file, advice or note"></label>
-    <button type="button" class="btn" id="f-clear">Clear</button>
-    <a class="btn" id="f-csv" download>Export CSV</a>
-  </form>
-  <section class="panel tight">
-    <div class="log-head"><b id="log-total"></b><span id="log-mix"></span><span class="grow"></span><label class="muted"><input type="checkbox" id="log-auto" checked> update live</label></div>
-    <div class="table-wrap">
-      <table class="log">
-        <thead><tr><th></th><th>Unit</th><th>Line</th><th>Result</th><th>Findings</th><th>Labels</th><th>Advice</th><th>Decision</th><th class="num">Vision</th></tr></thead>
-        <tbody id="log-rows"></tbody>
-      </table>
+<main id="page-inspect" class="page inspect" hidden>
+  <section class="stage" aria-label="Inspection view">
+    <div class="view-wrap" id="view-wrap">
+     <div class="view-frame" id="view-frame">
+      <img id="view" alt="Live inspection view with findings marked">
+      <div class="view-msg" id="view-msg" hidden></div>
+     </div>
+      <div class="view-top">
+       <span class="live" id="live-chip"><i></i><span></span></span>
+       <span class="grow"></span>
+       <div class="ctl" id="ctl">
+         <label class="pace" id="pace-wrap"><span>Pace</span><input type="range" id="pace" min="0" max="6" step="1" aria-label="Pace"><output id="pace-val"></output></label>
+         <button class="ibtn" id="step" type="button"></button>
+         <button class="ibtn" id="play" type="button"></button>
+         <button class="ibtn solid" id="inspect-now" type="button" hidden></button>
+       </div>
+     </div>
     </div>
-    <div class="pager"><button class="btn" id="p-new">Newer</button><span class="muted" id="p-pos"></span><button class="btn" id="p-old">Older</button></div>
+    <div class="stage-info">
+      <div class="stage-head">
+        <h1 id="line-title">QC Inspector</h1>
+        <p id="line-desc"></p>
+      </div>
+      <div class="recent" id="recent" aria-label="Latest units, newest first"></div>
+      <div class="ticks" id="ticks" role="img"></div>
+      <div class="stage-stats" id="stage-stats"></div>
+    </div>
+  </section>
+
+  <section class="bento" aria-label="This unit and this session">
+    <article class="card verdict" id="verdict">
+      <div class="v-top"><span class="v-ico" id="v-ico" aria-hidden="true"></span><span class="v-label" id="v-unit"></span></div>
+      <div class="v-word" id="v-word">Waiting</div>
+      <div class="v-why" id="v-why"></div>
+      <div class="v-foot" id="v-foot"></div>
+    </article>
+    <article class="card" id="side-card">
+      <h2 id="side-title">Parts in view</h2>
+      <div id="side-body"></div>
+    </article>
+    <article class="card" id="yield-card">
+      <h2>Session yield</h2>
+      <div class="yield" id="yield"></div>
+    </article>
+    <article class="card findings-card">
+      <h2>Findings <span class="sub" id="find-count"></span></h2>
+      <div id="findings"></div>
+    </article>
+    <article class="card" id="board-card">
+      <h2>Board</h2>
+      <div id="board"></div>
+    </article>
+    <article class="card dark advice-card">
+      <div class="adv-head"><h2>Llama advice</h2><span class="sub" id="adv-unit"></span><span class="grow"></span><span class="badge" id="adv-badge"></span></div>
+      <div id="advice"></div>
+    </article>
   </section>
 </main>
 
-<main id="page-analytics" class="page" hidden>
-  <form class="panel filters" id="a-filters">
-    <label>Line <select name="profile"></select></label>
-    <label>Session <select name="session"></select></label>
+<main id="page-log" class="page plain" hidden>
+  <div class="page-head">
+    <div><h1>Inspection log</h1><p class="lede" id="log-total"></p></div>
+    <div class="mix" id="log-mix"></div>
     <span class="grow"></span>
-    <button type="button" class="btn primary" id="summary-btn">Ask Llama for a shift summary</button>
+    <label class="toggle"><input type="checkbox" id="log-auto" checked><span>Update live</span></label>
+    <a class="btn dark" id="f-csv" download></a>
+  </div>
+  <form class="card filters" id="filters">
+    <div class="seg" id="f-results" role="group" aria-label="Result"></div>
+    <label>Line<select name="profile"></select></label>
+    <label>Defect<select name="defect"></select></label>
+    <label>Decision<select name="decision"></select></label>
+    <label>Against labels<select name="gt_outcome">
+      <option value="">any</option><option value="ok">agrees</option><option value="escape">missed defect</option><option value="false_reject">false reject</option>
+    </select></label>
+    <label>Session<select name="session"></select></label>
+    <label>From<input type="date" name="from"></label>
+    <label>To<input type="date" name="to"></label>
+    <label class="grow">Search<input type="search" name="q" placeholder="Unit, file, advice or note"></label>
+    <button type="button" class="btn ghost" id="f-clear">Clear</button>
   </form>
-  <section class="panel" id="summary" hidden></section>
-  <section class="kpis" id="a-kpis"></section>
-  <div class="grid2">
-    <section class="panel"><h2>Results over time</h2><div id="a-trend"></div></section>
-    <section class="panel"><h2>Defects by type</h2><div id="a-defects"></div></section>
-    <section class="panel"><h2>Verdicts against the dataset's labels</h2><div id="a-labels"></div></section>
-    <section class="panel"><h2>Where defects occur</h2><div id="a-zones"></div></section>
-    <section class="panel"><h2>Llama advice</h2><div id="a-advice"></div></section>
-    <section class="panel"><h2>Operator decisions</h2><div id="a-decisions"></div></section>
+  <section class="card table-card">
+    <div class="table-wrap">
+      <table class="log">
+        <thead><tr><th><span class="vh">Image</span></th><th>Unit</th><th>Line</th><th>Result</th><th>Findings</th><th>Against labels</th><th>Advice</th><th>Decision</th><th class="num">Vision</th></tr></thead>
+        <tbody id="log-rows"></tbody>
+      </table>
+    </div>
+    <div class="pager"><button class="btn ghost" id="p-new" type="button"></button><span id="p-pos"></span><button class="btn ghost" id="p-old" type="button"></button></div>
+  </section>
+</main>
+
+<main id="page-analytics" class="page plain" hidden>
+  <div class="page-head">
+    <div><h1>Analytics</h1><p class="lede" id="a-scope"></p></div>
+    <span class="grow"></span>
+    <form class="inline-filters" id="a-filters">
+      <label>Line<select name="profile"></select></label>
+      <label>Session<select name="session"></select></label>
+    </form>
+    <button type="button" class="btn dark" id="summary-btn"></button>
+  </div>
+  <section class="card dark summary" id="summary" hidden></section>
+  <section class="stat-row" id="a-kpis"></section>
+  <div class="a-grid">
+    <section class="card span2"><h2>Results over time <span class="sub">share of units in each period; the rest went to review</span></h2><div id="a-trend"></div></section>
+    <section class="card"><h2>Verdicts against the dataset's labels</h2><div id="a-labels"></div></section>
+    <section class="card"><h2>Defects by type</h2><div id="a-defects"></div></section>
+    <section class="card"><h2>Where defects occur <span class="sub">image zones</span></h2><div id="a-zones"></div></section>
+    <section class="card dark"><h2>Llama advice</h2><div id="a-advice"></div></section>
+    <section class="card span3"><h2>Operator decisions</h2><div id="a-decisions"></div></section>
   </div>
 </main>
 
-<main id="page-system" class="page" hidden>
-  <section class="kpis" id="s-kpis"></section>
-  <div class="grid2" id="s-charts"></div>
-  <section class="panel"><h2>Runtimes</h2><div id="s-info"></div></section>
+<main id="page-system" class="page plain" hidden>
+  <div class="page-head"><div><h1>System</h1><p class="lede">Jetson Orin Nano, readings every few seconds</p></div></div>
+  <section class="stat-row" id="s-kpis"></section>
+  <div class="a-grid two" id="s-charts"></div>
+  <section class="card"><h2>Runtimes</h2><div id="s-info"></div></section>
 </main>
 
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title" hidden></aside>

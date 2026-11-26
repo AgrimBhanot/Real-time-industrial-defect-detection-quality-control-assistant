@@ -29,6 +29,20 @@ def test_parts_trigger_ignores_jitter_and_motion():
     assert not any(t.update([part("nut", 100 + 30 * i, 100)]) for i in range(20))
 
 
+def test_parts_trigger_on_pixels_ignores_flickering_detections():
+    t = PartsTrigger(frames=3)
+    empty = np.full((360, 640, 3), 30, np.uint8)
+    tray = empty.copy(); cv2.circle(tray, (200, 180), 25, (200, 200, 200), -1)
+    flicker = [[part("nut", 200, 180)], [], [part("nut", 200, 180), part("bolt", 500, 100)]]
+    fired = [t.update(flicker[i % 3], tray) for i in range(12)]
+    assert sum(fired) == 1 and fired.index(True) == 3            # held still: logged once, flicker or not
+    moving = [np.roll(tray, 9 * i, axis=1) for i in range(10)]
+    assert not any(t.update([part("nut", 200, 180)], m) for m in moving)   # belt running: nothing
+    assert sum(t.update([part("nut", 200, 180)], moving[-1]) for _ in range(6)) == 1   # belt stops, parts moved: a unit
+    assert sum(t.update([], empty) for _ in range(6)) == 0          # empty tray is not a unit
+    assert sum(t.update([part("nut", 200, 180)], tray) for _ in range(6)) == 1   # the same tray put back is
+
+
 def scene():
     img = np.full((400, 800, 3), 30, np.uint8)
     out = []

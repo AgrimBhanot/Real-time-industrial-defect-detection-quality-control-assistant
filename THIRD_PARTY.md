@@ -48,3 +48,8 @@ redistributed here. Cite: Jezek et al., "Deep learning-based defect detection of
 Steel surface defects, https://github.com/lvxiaoming2019/GC10-DET-Metallic-Surface-Defect-Datasets; YOLO-format copy from
 https://huggingface.co/datasets/dronefreak/GC10-DET (listed as CC BY 4.0). Not redistributed here; re-split by coil. Cite: Lv et al.,
 "Deep Metallic Surface Defect Detection: The New Benchmark and Detection Network", Sensors 2020.
+
+## Figtree typeface (operator site)
+Figtree by Erik Kennedy, https://github.com/erikdkennedy/figtree, SIL Open Font License 1.1 (`qc/app/static/fonts/OFL.txt`).
+Bundled in `qc/app/static/fonts/` so the site needs no network: a Latin subset of the variable font for the browser, and
+500 and 600 weight instances (made with fontTools) for the labels the board draws on inspection images.

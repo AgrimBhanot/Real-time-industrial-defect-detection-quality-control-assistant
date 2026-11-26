@@ -237,6 +237,7 @@ class InspectionDB:
             e[sev or "low"] += n
             e["total"] += n
             zones[zone] += n
+        buckets = min(buckets, max(4, len(units) // 6))   # at least about six units per point, so a share means something
         k = max(1, -(-len(units) // buckets))
         trend = []
         for i in range(0, len(units), k):

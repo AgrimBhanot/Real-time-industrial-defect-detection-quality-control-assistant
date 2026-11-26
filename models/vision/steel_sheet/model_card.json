@@ -1,0 +1,37 @@
+{
+  "profile": "steel_sheet",
+  "base_model": "yolo11n.pt",
+  "data": "/home/akshay/ps5-qc-inspector/data/datasets/steel_sheet/dataset.yaml",
+  "epochs": 35,
+  "imgsz": 640,
+  "batch": 8,
+  "augmentation": {
+    "degrees": 0.0,
+    "shear": 0.0,
+    "perspective": 0.0,
+    "translate": 0.1,
+    "scale": 0.3,
+    "fliplr": 0.5,
+    "flipud": 0.5,
+    "mosaic": 1.0,
+    "close_mosaic": 10,
+    "hsv_h": 0.0,
+    "hsv_s": 0.0,
+    "hsv_v": 0.3
+  },
+  "run_dir": "/home/akshay/ps5-qc-inspector/runs/train/steel_sheet/n640",
+  "trained_at": "2026-11-26T00:42:51",
+  "platform": "aarch64",
+  "gpu": "Orin",
+  "versions": {
+    "ultralytics": "8.3.253",
+    "torch": "2.8.0"
+  },
+  "val_metrics": {
+    "metrics/precision(B)": 0.5581811778554793,
+    "metrics/recall(B)": 0.5821400862292954,
+    "metrics/mAP50(B)": 0.590921378823488,
+    "metrics/mAP50-95(B)": 0.30722762123089653,
+    "fitness": 0.30722762123089653
+  }
+}

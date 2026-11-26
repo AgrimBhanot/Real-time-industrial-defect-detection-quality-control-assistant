@@ -126,15 +126,23 @@ class StableTrigger:
 
 
 class PartsTrigger:
-    """Tray inspection: fires once when the same parts lie still, and again only after a part was added, removed or moved.
+    """Tray inspection: fires once when the tray lies still with parts on it, and again only after the scene changed.
 
-    Works on detected parts instead of pixels: one nut on a large tray barely changes the mean grey level.
+    With the camera image (the live path) stillness is judged on pixels, which do not flicker the way per-frame detections
+    do (a part that is found in one frame and missed in the next used to restart the count, so a held tray was never logged).
+    The share of changed pixels, not the mean grey level, is used: one nut on a large tray barely moves the mean.
+    Without an image it falls back to comparing the detected parts.
     """
 
-    def __init__(self, frames: int = 8, still_px: float = 12.0, moved_px: float = 40.0, **_):
+    def __init__(self, frames: int = 8, still_px: float = 12.0, moved_px: float = 40.0, still_frac: float = 0.002,
+                 change_frac: float = 0.0015, diff: int = 18, **_):
         self.frames, self.still_px, self.moved_px = frames, still_px, moved_px
+        self.still_frac, self.change_frac, self.diff = still_frac, change_frac, diff
         self.prev: Optional[list] = None
         self.ref: Optional[list] = None
+        self.prev_img: Optional[np.ndarray] = None
+        self.ref_img: Optional[np.ndarray] = None
+        self.with_parts = 0
         self.n_still = 0
 
     @staticmethod
@@ -153,7 +161,39 @@ class PartsTrigger:
             left.pop(i)
         return True
 
-    def update(self, parts: list) -> bool:
+    @staticmethod
+    def _grey(image: np.ndarray) -> np.ndarray:
+        h, w = image.shape[:2]
+        g = cv2.resize(image, (320, max(1, round(320 * h / w))), interpolation=cv2.INTER_AREA)
+        if g.ndim == 3:
+            g = cv2.cvtColor(g, cv2.COLOR_BGR2GRAY)
+        return cv2.GaussianBlur(g, (5, 5), 0).astype(np.int16)
+
+    def changed(self, a: np.ndarray, b: np.ndarray) -> float:
+        """Share of pixels that differ by more than `diff` grey levels."""
+        return float(np.mean(np.abs(a - b) > self.diff)) if a.shape == b.shape else 1.0
+
+    def update(self, parts: list, image: Optional[np.ndarray] = None) -> bool:
+        if image is None:
+            return self._update_parts(parts)
+        g = self._grey(image)
+        prev, self.prev_img = self.prev_img, g
+        if prev is None or self.changed(g, prev) > self.still_frac:
+            self.n_still = self.with_parts = 0
+            return False
+        self.n_still += 1
+        self.with_parts += bool(parts)
+        if self.n_still != self.frames:   # once per rest; a longer rest is the same unit
+            return False
+        if 2 * self.with_parts < self.frames:   # mostly empty: the empty tray becomes the reference, so parts put back count
+            self.ref_img = g
+            return False
+        if self.ref_img is not None and self.changed(g, self.ref_img) < self.change_frac:
+            return False   # the tray came to rest again unchanged (a hand passed over it)
+        self.ref_img = g
+        return True
+
+    def _update_parts(self, parts: list) -> bool:
         k = self._keys(parts)
         prev, self.prev = self.prev, k
         if prev is None or not self.same(k, prev, self.still_px):

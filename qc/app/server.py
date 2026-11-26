@@ -4,6 +4,7 @@ from __future__ import annotations
 import io
 import ipaddress
 import logging
+import mimetypes
 import re
 import time
 from pathlib import Path
@@ -20,24 +21,9 @@ from qc.schema import Detection, InspectionRecord
 from qc.sources import CameraSource
 
 STATIC = Path(__file__).parent / "static"
+mimetypes.add_type("font/woff2", ".woff2")
 UNIT_ID = re.compile(r"^[A-Za-z0-9_-]{1,60}$")
 BOUNDARY = "multipart/x-mixed-replace; boundary=frame"
-
-
-def network_state() -> dict:
-    """Is there a way to the internet? (shown on the site as offline evidence; nothing is contacted)"""
-    out = {"default_route": None, "wifi": None}
-    try:
-        for line in Path("/proc/net/route").read_text().splitlines()[1:]:
-            f = line.split()
-            if f[1] == "00000000" and int(f[3], 16) & 1:
-                out["default_route"] = out["default_route"] or f[0]
-        for d in Path("/sys/class/net").iterdir():
-            if (d / "wireless").exists():
-                out["wifi"] = (d / "operstate").read_text().strip()
-    except OSError:
-        pass
-    return out
 
 
 def unit_image(u: dict, boxes: bool = True, width: int = 0):
@@ -163,7 +149,7 @@ def create_app(line, cfg: Config) -> Flask:
             "advisory_backend": pipe.advisor.backend if w else "disabled",
             "advice_pending": w.q.unfinished_tasks if w else 0, "advice_dropped": w.dropped if w else 0,
             "advice_writing": w.current if w else None,
-            "telemetry": pipe.telemetry.snapshot() if pipe.telemetry else {}, "network": network_state(),
+            "telemetry": pipe.telemetry.snapshot() if pipe.telemetry else {},
         })
         return jsonify(body)
 

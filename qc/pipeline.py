@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 
 
 class SharedState:
-    def __init__(self, keep_advice: int = 200, keep_units: int = 24):
+    def __init__(self, keep_advice: int = 200, keep_units: int = 48):
         self.lock = threading.Lock()
         self.jpeg: Optional[bytes] = None          # newest view with overlay
         self.record: Optional[dict] = None         # last logged unit
@@ -136,7 +136,7 @@ class Pipeline:
         cam = cfg.section("source").get("camera", {})
         self.trigger = None
         if isinstance(self.source, CameraSource) and cam.get("trigger") == "parts":
-            p = {k: v for k, v in (cam.get("trigger_params") or {}).items() if k in ("still_px", "moved_px")}
+            p = {k: v for k, v in (cam.get("trigger_params") or {}).items() if k in ("still_px", "moved_px", "still_frac", "change_frac", "diff")}
             self.trigger = PartsTrigger(frames=int(cam.get("parts_frames", 8)), **p)
 
         adv = cfg.section("advisory")
@@ -265,7 +265,7 @@ class Pipeline:
                 break
             rec = self.analyse(frame)
             if live:
-                at_rest = self.trigger.update(frame.parts)
+                at_rest = self.trigger.update(frame.parts, frame.image)
                 unit = self.control.take_inspect() or (at_rest and not self.control.paused)
             else:
                 unit = True

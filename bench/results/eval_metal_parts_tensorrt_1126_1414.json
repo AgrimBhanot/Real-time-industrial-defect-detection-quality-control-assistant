@@ -1,0 +1,202 @@
+{
+  "profile": "metal_parts",
+  "backend": "tensorrt",
+  "split": "test",
+  "clean_split": "test_clean",
+  "iou_threshold": 0.5,
+  "conf_threshold": 0.25,
+  "n_images": 178,
+  "n_defective_units": 81,
+  "n_clean_units": 97,
+  "class_conf": {},
+  "per_class": {
+    "tip_damage": {
+      "tp": 1,
+      "fp": 4,
+      "fn": 3,
+      "precision": 0.2,
+      "recall": 0.25,
+      "f1": 0.22222222222222224,
+      "hard_case_recall": 0.0
+    },
+    "scratch": {
+      "tp": 19,
+      "fp": 17,
+      "fn": 22,
+      "precision": 0.5277777777777778,
+      "recall": 0.4634146341463415,
+      "f1": 0.4935064935064935,
+      "hard_case_recall": 0.45454545454545453
+    },
+    "thread_damage": {
+      "tp": 3,
+      "fp": 3,
+      "fn": 3,
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "hard_case_recall": 0.0
+    },
+    "deformation": {
+      "tp": 22,
+      "fp": 1,
+      "fn": 7,
+      "precision": 0.9565217391304348,
+      "recall": 0.7586206896551724,
+      "f1": 0.8461538461538461,
+      "hard_case_recall": 0.875
+    },
+    "discolouration": {
+      "tp": 3,
+      "fp": 2,
+      "fn": 0,
+      "precision": 0.6,
+      "recall": 1.0,
+      "f1": 0.7499999999999999,
+      "hard_case_recall": 1.0
+    },
+    "flipped": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "hard_case_recall": 1.0
+    },
+    "rust": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "hard_case_recall": 1.0
+    },
+    "hole": {
+      "tp": 2,
+      "fp": 2,
+      "fn": 2,
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "hard_case_recall": 0.0
+    },
+    "paint_defect": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.75,
+      "f1": 0.8571428571428571,
+      "hard_case_recall": 1.0
+    },
+    "mismatch": {
+      "tp": 8,
+      "fp": 7,
+      "fn": 18,
+      "precision": 0.5333333333333333,
+      "recall": 0.3076923076923077,
+      "f1": 0.3902439024390244,
+      "hard_case_recall": 0.42857142857142855
+    }
+  },
+  "macro": {
+    "precision": 0.6817632850241546,
+    "recall": 0.6529727631493821,
+    "f1": 0.6559269321464444
+  },
+  "by_group_exposure": {
+    "all": {
+      "tp": 70,
+      "fn": 56,
+      "fp": 36,
+      "defective": 81,
+      "escapes": 13,
+      "clean": 97,
+      "false_rejects": 6
+    }
+  },
+  "hard_case_recall_overall": 0.5714285714285714,
+  "unit_level": {
+    "escape_rate": 0.16049382716049382,
+    "false_reject_rate": 0.061855670103092786,
+    "verdict_matrix_gt_to_pred": {
+      "FAIL": {
+        "FAIL": 42,
+        "REVIEW": 4,
+        "PASS": 6
+      },
+      "PASS_WITH_NOTE": {
+        "REVIEW": 8,
+        "PASS": 5,
+        "FAIL": 1,
+        "PASS_WITH_NOTE": 2
+      },
+      "REVIEW": {
+        "REVIEW": 10,
+        "FAIL": 3
+      },
+      "PASS": {
+        "PASS": 91,
+        "REVIEW": 5,
+        "FAIL": 1
+      }
+    }
+  },
+  "confusion_gt_to_pred": {
+    "hole": {
+      "hole": 1,
+      "missed": 2,
+      "scratch": 1
+    },
+    "background": {
+      "scratch": 16,
+      "hole": 3,
+      "mismatch": 7,
+      "deformation": 1,
+      "discolouration": 2,
+      "tip_damage": 4,
+      "thread_damage": 3
+    },
+    "scratch": {
+      "scratch": 19,
+      "missed": 22
+    },
+    "mismatch": {
+      "missed": 18,
+      "mismatch": 8
+    },
+    "paint_defect": {
+      "paint_defect": 3,
+      "missed": 1
+    },
+    "rust": {
+      "rust": 6
+    },
+    "deformation": {
+      "missed": 7,
+      "deformation": 22
+    },
+    "discolouration": {
+      "discolouration": 3
+    },
+    "flipped": {
+      "flipped": 3
+    },
+    "tip_damage": {
+      "missed": 3,
+      "tip_damage": 1
+    },
+    "thread_damage": {
+      "thread_damage": 3,
+      "missed": 3
+    }
+  },
+  "latency_ms": {
+    "mean": 44.316553657389186,
+    "p50": 43.662717998813605,
+    "p95": 46.35463774684467
+  },
+  "evaluated_at": "2026-11-26T14:14:32"
+}

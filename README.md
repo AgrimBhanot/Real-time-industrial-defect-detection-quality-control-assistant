@@ -123,14 +123,23 @@ Raw files: `bench/results/`. Re-run with `scripts/run_benchmarks.sh`. Final repo
 
 | metric | value |
 |---|---|
-| model load (once) | 3.6-3.9 s; process RSS 1.25 GB |
-| prompt / generated tokens | 1105 / 152 mean |
-| TTFT | 15.5 s mean (17.9 p95), dominated by prefill of the ~1.1k-token prompt |
-| decode speed | 15.0 tok/s mean |
-| total per advice | 25.5 s mean (30.6 p95) |
-| valid advice / clean first try / repaired / template fallback | 100% / 67% / 30% / 0% |
+| model load (once) | 3.6 s (3.6 s load + 0.2 s warmup); process RSS 1.26 GB |
+| prompt / generated tokens | 1128 / 139 mean |
+| TTFT (with KV prefix cache) | 6.3 s mean (6.6 s p50, 11.3 s p95; down from 15.5 s pre-cache) |
+| decode speed | 14.8 tok/s mean (14.7 p50) |
+| total per advice | 15.7 s mean (15.8 s p50, 20.6 s p95; down from 25.5 s pre-cache) |
+| valid advice / clean first try / repaired / template fallback | 96.7% / 63.3% / 30.0% / 3.3% |
 | faithfulness failures (defect not in record) | 0 |
-| running together with vision | vision 38 FPS (no loss); Llama 13.3 tok/s (about -9%) |
+| running together with vision (`1126_1620`) | vision 38.2 FPS (22.2 ms mean, 8.96 W mean, 55.2 C max); Llama 7.45 s TTFT p50 (8.20 s mean), 12.8 tok/s mean |
+
+**Phase 2 lines — held-out `test` split (TensorRT FP16, IoU >= 0.5, conf >= 0.25):**
+
+| line (`eval_*_1126`) | test units | macro P / R / F1 | escape rate (defective passed) | false-reject rate (clean failed) | vision latency (mean / p95) |
+|---|---|---|---|---|---|
+| `metal_parts` | 81 def + 97 clean | 0.682 / 0.653 / 0.656 | 16.0% (13/81) | 6.2% (6/97) | 44.3 ms / 46.6 ms |
+| `mvtec_fasteners` (YOLO only) | 31 def + 63 clean | 0.577 / 0.694 / 0.624 | 9.7% (3/31) | 0.0% (0/63) | 43.5 ms / 46.1 ms |
+| `mvtec_fasteners` (+ anomaly) | 31 def + 63 clean | 0.577 / 0.694 / 0.624 | 3.2% (1/31) | 3.2% (2/63) | 81.1 ms / 106.4 ms |
+| `steel_sheet` (GC10-DET) | 345 def + 0 clean | 0.710 / 0.599 / 0.610 | 41.4% (143/345) | — | 24.4 ms / 25.6 ms |
 
 **Reliability:** 1,000-unit soak with Llama advice passed: no crashes, every unit logged, SQLite integrity ok, app RSS +3 MB. Board power during the soak was 8.4 W mean and 9.0 W max; temperature stayed at or below 55 C.
 

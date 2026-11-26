@@ -1,0 +1,37 @@
+{
+  "profile": "metal_parts",
+  "base_model": "runs/train/mvtec_fasteners/n960r4.pt",
+  "data": "/home/akshay/ps5-qc-inspector/data/datasets/metal_parts/dataset.yaml",
+  "epochs": 30,
+  "imgsz": 960,
+  "batch": 6,
+  "augmentation": {
+    "degrees": 180.0,
+    "shear": 0.0,
+    "perspective": 0.0,
+    "translate": 0.1,
+    "scale": 0.3,
+    "fliplr": 0.5,
+    "flipud": 0.5,
+    "mosaic": 1.0,
+    "close_mosaic": 10,
+    "hsv_h": 0.01,
+    "hsv_s": 0.3,
+    "hsv_v": 0.3
+  },
+  "run_dir": "/home/akshay/ps5-qc-inspector/runs/train/metal_parts/n960w1",
+  "trained_at": "2026-11-26T03:31:47",
+  "platform": "aarch64",
+  "gpu": "Orin",
+  "versions": {
+    "ultralytics": "8.3.253",
+    "torch": "2.8.0"
+  },
+  "val_metrics": {
+    "metrics/precision(B)": 0.7127195770765794,
+    "metrics/recall(B)": 0.6604727417193164,
+    "metrics/mAP50(B)": 0.7009598570913603,
+    "metrics/mAP50-95(B)": 0.364853704243322,
+    "fitness": 0.364853704243322
+  }
+}
