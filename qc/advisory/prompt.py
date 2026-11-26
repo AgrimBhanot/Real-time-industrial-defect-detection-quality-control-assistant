@@ -15,8 +15,8 @@ SYSTEM = (
     '"recommended_actions": list of 1-3 strings, at most 8 words each; "verify": one check, at most 15 words; '
     '"log_entry": one line, at most 20 words, written once.\n'
     "Rules: mention ONLY defect types present in the record. With several defects, lead with the most severe "
-    "and summarise the rest briefly. Take causes and actions from the SOP notes. Use the context (recent "
-    "defect counts) to point out repeats. Do not invent measurements. Never repeat a phrase."
+    "and summarise the rest briefly. Take causes and actions from the SOP notes. The verify field is a check a person does next. "
+    "Use the context counts only as given. Do not invent measurements. Never repeat a phrase."
 )
 
 
@@ -57,7 +57,7 @@ def worked_example(profile: dict, compact: bool = False) -> tuple[str, str]:
         "likely_causes": e["causes"][:2],
         "recommended_actions": e["actions"][:2],
         "verify": f"Re-inspect the next 5 units for {cls} after the correction.",
-        "log_entry": f"U-EXAMPLE FAIL {cls}/high B2; 3rd {cls} in last 50 units; {e['actions'][0]}.",
+        "log_entry": f"U-EXAMPLE FAIL {cls}/high B2; {e['actions'][0]}.",
     }
     return user_message(profile, view), json.dumps(answer)
 

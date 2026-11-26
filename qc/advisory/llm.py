@@ -179,6 +179,21 @@ class LLMServerClient:
                 p.kill()
 
 
+def server_client(cfg: Config) -> Optional[LLMServerClient]:
+    """The persistent Llama server described by the config (not started yet), or None when its files are missing."""
+    e = cfg.section("advisory").get("executorch", {})
+    if e.get("mode", "server") != "server":
+        return None
+    paths = [cfg.path(e[k]) for k in ("server", "model", "tokenizer")]
+    if not all(p.exists() for p in paths):
+        return None
+    argv = [str(paths[0]), f"--model_path={paths[1]}", f"--tokenizer_path={paths[2]}",
+            f"--cpu_threads={e.get('cpu_threads', 4)}", f"--warmup={str(e.get('warmup', True)).lower()}"]
+    return LLMServerClient(argv, cfg.path(e.get("server_log", "runs/logs/llm_server.log")),
+                           start_timeout=float(e.get("start_timeout_s", 120)),
+                           call_timeout=float(e.get("timeout_s", 180)))
+
+
 class ExecuTorchLLM:
     """Llama 3.2 1B Instruct (.pte, 8da4w, XNNPACK) through ExecuTorch on the Arm CPU.
 
@@ -216,10 +231,7 @@ class ExecuTorchLLM:
         self.server: Optional[LLMServerClient] = server
         self.owns_server = server is None
         if self.mode == "server" and server is None:
-            argv = [str(self.runner), f"--model_path={self.model}", f"--tokenizer_path={self.tokenizer}",
-                    f"--cpu_threads={self.values['cpu_threads']}", f"--warmup={str(e.get('warmup', True)).lower()}"]
-            self.server = LLMServerClient(argv, cfg.path(e.get("server_log", "runs/logs/llm_server.log")),
-                                          start_timeout=float(e.get("start_timeout_s", 120)), call_timeout=self.timeout)
+            self.server = server_client(cfg)
         if self.server:
             self.lock = self.server.lock  # advice worker, shift summary and other lines share one process
 

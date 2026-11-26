@@ -128,7 +128,7 @@ def main(argv=None) -> int:
         return cmd_advise_sample(cfg)
     from qc.app.server import serve
 
-    serve(cfg)
+    serve(cfg, args.set, args.config)
     return 0
 
 

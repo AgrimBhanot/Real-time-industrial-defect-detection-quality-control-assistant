@@ -1,4 +1,5 @@
 name: pcb
+label: PCB copper pattern
 title: bare-PCB copper-pattern inspection (AOI after etching)
 station: AOI-1
 dataset: DeepPCB (https://github.com/tangsanli5201/DeepPCB) - research use; artificial defects disclosed

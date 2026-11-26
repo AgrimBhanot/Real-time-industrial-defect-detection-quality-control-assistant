@@ -16,6 +16,27 @@ frame source ──► vision (runtime A) ──► rule engine ──► SQLite
 - **Two runtimes, two processes.** Vision runs in the Python process on the GPU (TensorRT). Llama runs in `qc_llm_server`, a small C++ program linked against ExecuTorch (`native/qc_llm_server/`). It loads the `.pte` once and then serves prompts over stdin/stdout, so no unit pays the model load. ExecuTorch's own `llama_main` is built alongside it for one-shot checks. The two runtimes are benchmarked separately and together.
 - **Domain = profile.** `configs/profiles/pcb.yaml` (DeepPCB, 6 classes) and `configs/profiles/fasteners.yaml` (bolts, Phase 2, no model yet) hold the classes, severity policy, decision rules and SOP notes. Switch with `--set profile=fasteners`.
 
+## Phase 2: lines, live camera, inspection log
+
+```bash
+scripts/run_demo.sh --set profile=tray          # live camera; or metal_parts | steel_sheet | pcb | mvtec_fasteners
+```
+Open http://192.168.55.1:8000 (USB-C) or http://localhost:8000 on the board. Other addresses are refused (`server.allow`).
+The line can be switched on the site; Llama stays loaded and the log is shared.
+
+| Line | Finds | Data |
+|---|---|---|
+| `tray` | nuts, bolts, washers on a live camera; rust-coloured surface per part | own camera view (`training/make_tray_dataset.py`) |
+| `metal_parts` | 10 defect types on nuts, screws, brackets, tubes, plates | MVTec AD + MPDD (`training/prepare_metal_parts.py`) |
+| `steel_sheet` | 10 defect types on rolled steel | GC10-DET, split by coil (`training/prepare_gc10.py`) |
+| `pcb` | 6 copper-pattern defects | DeepPCB |
+
+- **Conveyor lines** step through held-out images; each verdict is compared with the verdict the same rules give the image's labels (agrees / missed defect / false reject).
+- **Tray line** analyses every frame and logs a unit when the parts lie still, once per arrangement (or "Inspect now").
+- **Inspection log**: search and filter, evidence image with findings, rule trace, advice, timings, operator decisions (append-only), CSV export of the filtered units.
+- **Analytics**: results over time, defects by type and zone, agreement with labels, advice quality, shift summary by Llama.
+- **Llama prefix cache**: `native/patch_prefix_cache.py` lets the ExecuTorch runner reuse the unchanged start of each prompt (`QC_NO_PREFIX_CACHE=1` turns it off).
+
 ## Layout
 
 | Path | What |

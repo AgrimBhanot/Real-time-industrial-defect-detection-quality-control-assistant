@@ -168,6 +168,43 @@ def _drop_name_causes(advice: dict, record: InspectionRecord, profile: dict, not
     notes.append("defect name used as cause: replaced from the SOP")
 
 
+_COUNT_CLAIM = re.compile(r"\b(?:in|of|over)\s+(?:the\s+)?(?:last|past|recent)\s+(\d+)\s+units?\b", re.IGNORECASE)
+_ORDINAL = re.compile(r"\b(\d+)(?:st|nd|rd|th)\b", re.IGNORECASE)
+
+
+def _fix_claims(advice: dict, record: InspectionRecord, profile: dict, notes: Optional[list]) -> list[str]:
+    """Counts must come from the record's context, and `verify` must be a check, not a copy of the log line."""
+    ctx = record.context or {}
+    allowed = set((ctx.get("recent_defects") or {}).values()) | {ctx.get("recent_fail")}
+    allowed |= {n + 1 for n in allowed if isinstance(n, int)}  # "3rd" may count this unit too
+    for k in ("summary", "verify", "log_entry"):
+        keep, dropped = [], False
+        for clause in advice[k].split(";"):
+            m = _COUNT_CLAIM.search(clause)
+            ords = [int(x) for x in _ORDINAL.findall(clause)]
+            if m and (int(m.group(1)) != ctx.get("recent_units") or any(o not in allowed for o in ords)):
+                dropped = True
+            else:
+                keep.append(clause.strip())
+        if dropped:
+            if notes is None:
+                return [f"{k} states a count that is not in the record"]
+            advice[k] = "; ".join(c for c in keep if c).rstrip(".; ") + "." if any(keep) else ""
+            notes.append(f"unsupported count removed from {k}")
+    worst = max(record.detections, key=lambda d: ("low", "medium", "high").index(d.severity or "low"), default=None)
+    name = worst.defect.replace("_", " ") if worst else "defects"
+    if not advice["verify"] or (record.unit_id and record.unit_id in advice["verify"]):
+        if notes is None:
+            return ["'verify' is not a check"]
+        advice["verify"] = f"Re-inspect the next 5 units for {name}."
+        notes.append("'verify' replaced: it was not a check")
+    if not advice["summary"]:
+        advice["summary"] = f"{name} in zone {worst.zone}." if worst else "see findings."
+    if not advice["log_entry"]:
+        advice["log_entry"] = f"{record.unit_id} {record.inspection_result} {name}."
+    return []
+
+
 def validate(text: str, record: InspectionRecord, profile: dict,
              notes: Optional[list] = None) -> tuple[Optional[dict], list[str]]:
     """Strict checks on Llama output. If `notes` is a list, truncated output is repaired (loop collapsed,
@@ -208,7 +245,7 @@ def validate(text: str, record: InspectionRecord, profile: dict,
     invented = mentioned_classes(blob, profile) - set(record.defect_classes)
     if invented:
         return None, [f"mentions defect(s) not in record: {sorted(invented)}"]
-    errors = _fix_verdict(advice, record, profile, notes)
+    errors = _fix_claims(advice, record, profile, notes) or _fix_verdict(advice, record, profile, notes)
     if errors:
         return None, errors
     _drop_name_causes(advice, record, profile, notes)

@@ -1,6 +1,7 @@
 # Screws and nuts from MVTec AD (CC BY-NC-SA 4.0, non-commercial; images are not redistributed here).
 # Severity policy and SOP text are engineering defaults, not a standard.
 name: mvtec_fasteners
+label: Screws & nuts (MVTec only)
 title: screw and nut visual inspection
 station: QC-CAM-1
 dataset: MVTec AD screw + metal_nut (training/prepare_mvtec.py); own split, not the published protocol

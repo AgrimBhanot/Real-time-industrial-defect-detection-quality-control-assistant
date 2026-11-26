@@ -1,0 +1,1204 @@
+{
+  "summary": {
+    "backend": "executorch",
+    "n": 30,
+    "valid_rate": 0.9666666666666667,
+    "strict_first_try_rate": 0.6333333333333333,
+    "repaired_rate": 0.3,
+    "loop_stops": 0,
+    "fallback_rate": 0.03333333333333333,
+    "faithfulness_failures": 0,
+    "error_kinds": {
+      "missing key 'verify'": 7,
+      "missing key 'log_entry'": 7,
+      "repaired": 9,
+      "missing key 'recommended_actions'": 5
+    },
+    "ttft_ms": {
+      "mean": 6325.5,
+      "p50": 6589.0,
+      "p95": 11285.55,
+      "min": 66.0,
+      "max": 16916.0,
+      "n": 30
+    },
+    "tok_s": {
+      "mean": 14.755632494051666,
+      "p50": 14.730391149069334,
+      "p95": 15.587423559590363,
+      "min": 13.199027440083363,
+      "max": 16.100443131462335,
+      "n": 30
+    },
+    "total_ms": {
+      "mean": 15711.0,
+      "p50": 15838.0,
+      "p95": 20623.7,
+      "min": 6838.0,
+      "max": 26024.0,
+      "n": 30
+    },
+    "load_ms": {},
+    "server_start": {
+      "load_ms": 3593,
+      "warmup_ms": 209,
+      "threads": 4,
+      "pid": 20753,
+      "wall_ms": 3809.3413679998775
+    },
+    "llm_process_peak_rss_mb": 1256.01953125,
+    "prompt_tokens": {
+      "mean": 1128.3333333333333,
+      "p50": 1099.0,
+      "p95": 1284.85,
+      "min": 945.0,
+      "max": 1425.0,
+      "n": 30
+    },
+    "generated_tokens": {
+      "mean": 139.16666666666666,
+      "p50": 131.5,
+      "p95": 179.74999999999994,
+      "min": 99.0,
+      "max": 255.0,
+      "n": 30
+    },
+    "config": {
+      "enabled": true,
+      "backend": "executorch",
+      "submit_when": [
+        "FAIL",
+        "REVIEW",
+        "PASS_WITH_NOTE"
+      ],
+      "queue_size": 8,
+      "prioritise": true,
+      "compact_record": false,
+      "retries": 1,
+      "temperature": 0.2,
+      "executorch": {
+        "mode": "server",
+        "server": "third_party/executorch/cmake-out/examples/models/llama/qc_llm_server",
+        "server_log": "runs/logs/llm_server.log",
+        "runner": "third_party/executorch/cmake-out/examples/models/llama/llama_main",
+        "model": "models/llm/llama3_2_1b_instruct_8da4w.pte",
+        "tokenizer": "models/llm/tokenizer.model",
+        "max_new_tokens": 256,
+        "seq_len": 1536,
+        "cpu_threads": 4,
+        "warmup": true,
+        "start_timeout_s": 120,
+        "timeout_s": 180,
+        "args": [
+          "--model_path={model}",
+          "--tokenizer_path={tokenizer}",
+          "--prompt={prompt}",
+          "--temperature={temperature}",
+          "--seq_len={seq_len}",
+          "--cpu_threads={cpu_threads}"
+        ]
+      }
+    },
+    "at": "2026-11-26T01:16:15"
+  },
+  "samples": [
+    {
+      "unit_id": "U-BENCH-0000",
+      "advice": {
+        "summary": "FAIL: one high-severity short (unintended copper bridge) in zone A3.",
+        "likely_causes": [
+          "under-etching",
+          "resist residue",
+          "conductive debris"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Re-inspect the next 5 units for short after rework by cutting the bridge.",
+        "log_entry": "U-BENCH-0000 FAIL short/under-etching/medium B3; check etchant strength and rinse; rework by cutting the bridge; clean the line."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 16916.0,
+      "tok_s": 14.492753623188404,
+      "total_ms": 26024.0,
+      "load_ms": null,
+      "prompt_tokens": 1167,
+      "generated_tokens": 133,
+      "repaired": false,
+      "cached_tokens": 1,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short (unintended copper bridge) in zone A3.\", \"likely_causes\": [\"under-etching\", \"resist residue\", \"conductive debris\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Re-inspect the next 5 units for short after rework by cutting the bridge.\", \"log_entry\": \"U-BENCH-0000 FAIL short/under-etching/medium B3; check etchant strength and rinse; rework by cutting the bridge; clean the line.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0001",
+      "advice": {
+        "summary": "FAIL: one high-severity short (unintended copper bridge), one high-severity copper, one medium-high pin-hole, one high-severity spur in zone B2.",
+        "likely_causes": [
+          "under-etch residue",
+          "resist defect",
+          "conductive debris"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean artwork",
+          "clean phototool"
+        ],
+        "verify": "Re-inspect the next 5 units for short, copper, pin-hole, spur in zone B2.",
+        "log_entry": "U-BENCH-0001 FAIL open/high C3; 3 open in last 50 units."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 2,
+      "errors": [
+        "attempt 1: missing key 'verify'",
+        "attempt 1: missing key 'log_entry'",
+        "attempt 2: repaired: log_entry built from the record"
+      ],
+      "ttft_ms": 76.0,
+      "tok_s": 15.06024096385542,
+      "total_ms": 9040.0,
+      "load_ms": null,
+      "prompt_tokens": 1061,
+      "generated_tokens": 136,
+      "repaired": true,
+      "cached_tokens": 1060,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short (unintended copper bridge), one high-severity copper, one medium-high pin-hole, one high-severity spur in zone B2.\", \"likely_causes\": [\"under-etch residue\", \"resist defect\", \"conductive debris\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean artwork\", \"clean phototool\", \"rework by cutting the bridge\", \"clean phototool\", \"clean artwork\"], \"verify\": \"Re-inspect the next 5 units for short, copper, pin-hole, spur in zone B2.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0002",
+      "advice": {
+        "summary": "FAIL: one high-severity open (break in a copper trace) in zone B2.",
+        "likely_causes": [
+          "over-etching",
+          "scratch or handling damage",
+          "resist flaw",
+          "dust on phototool"
+        ],
+        "recommended_actions": [
+          "check etch time and concentration",
+          "inspect handling and phototool cleanliness",
+          "quarantine the lot",
+          "clean the environment"
+        ],
+        "verify": "Re-inspect the next 5 units for open after the correction, and check the etch time and concentration for the next 5 units.",
+        "log_entry": "U-BENCH-0002 FAIL open/high B2; check etch time and concentration for the next 5 units."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 7469.0,
+      "tok_s": 15.206000205486488,
+      "total_ms": 17202.0,
+      "load_ms": null,
+      "prompt_tokens": 1064,
+      "generated_tokens": 149,
+      "repaired": false,
+      "cached_tokens": 559,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity open (break in a copper trace) in zone B2.\", \"likely_causes\": [\"over-etching\", \"scratch or handling damage\", \"resist flaw\", \"dust on phototool\"], \"recommended_actions\": [\"check etch time and concentration\", \"inspect handling and phototool cleanliness\", \"quarantine the lot\", \"clean the environment\"], \"verify\": \"Re-inspect the next 5 units for open after the correction, and check the etch time and concentration for the next 5 units.\", \"log_entry\": \"U-BENCH-0002 FAIL open/high B2; check etch time and concentration for the next 5 units.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0003",
+      "advice": {
+        "summary": "FAIL: one high-severity short (unintended copper bridge) in zone C3.",
+        "likely_causes": [
+          "under-etch residue",
+          "resist defect"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Re-inspect the next 5 units for short after rework.",
+        "log_entry": "U-BENCH-0003 FAIL short high C3; check etchant strength and rinse; rework by cutting the bridge; clean the line."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 11484.0,
+      "tok_s": 13.533834586466167,
+      "total_ms": 20129.0,
+      "load_ms": null,
+      "prompt_tokens": 1425,
+      "generated_tokens": 118,
+      "repaired": false,
+      "cached_tokens": 689,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short (unintended copper bridge) in zone C3.\", \"likely_causes\": [\"under-etch residue\", \"resist defect\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Re-inspect the next 5 units for short after rework.\", \"log_entry\": \"U-BENCH-0003 FAIL short high C3; check etchant strength and rinse; rework by cutting the bridge; clean the line.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0004",
+      "advice": {
+        "summary": "FAIL: one high-severity short (unintended copper bridge between conductors) in zone B1.",
+        "likely_causes": [
+          "under-etch residue",
+          "resist defect"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Re-inspect the next 5 units for short after rework.",
+        "log_entry": "B1 SHORT high (base) - rework by cutting the bridge."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 7699.0,
+      "tok_s": 14.048702167514048,
+      "total_ms": 15173.0,
+      "load_ms": null,
+      "prompt_tokens": 1281,
+      "generated_tokens": 106,
+      "repaired": false,
+      "cached_tokens": 780,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short (unintended copper bridge between conductors) in zone B1.\", \"likely_causes\": [\"under-etch residue\", \"resist defect\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Re-inspect the next 5 units for short after rework.\", \"log_entry\": \"B1 SHORT high (base) - rework by cutting the bridge.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0005",
+      "advice": {
+        "summary": "FAIL: one high-severity spur, one medium-copper, one low pin-hole, one high mousebite in zone B2.",
+        "likely_causes": [
+          "incomplete etch",
+          "contamination",
+          "resist nick"
+        ],
+        "recommended_actions": [
+          "clean B2, C1, C3 environment",
+          "inspect resist coat",
+          "check etch time and concentration"
+        ],
+        "verify": "Re-inspect the next 5 units for spur, copper, pin-hole, mousebite in zone B2.",
+        "log_entry": "B2, C1, C3, C3 FAIL spur, copper, pin-hole, mousebite in zone B2; clean B2, C1, C3 environment; inspect resist coat; check etch time and concentration."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [
+        "attempt 1: repaired: defect name used as cause: replaced from the SOP"
+      ],
+      "ttft_ms": 5253.0,
+      "tok_s": 15.302727877578176,
+      "total_ms": 15774.0,
+      "load_ms": null,
+      "prompt_tokens": 1045,
+      "generated_tokens": 162,
+      "repaired": true,
+      "cached_tokens": 689,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity spur, one medium-copper, one low pin-hole, one high mousebite in zone B2.\", \"likely_causes\": [\"spur\", \"copper\", \"pin-hole\", \"mousebite\"], \"recommended_actions\": [\"clean B2, C1, C3 environment\", \"inspect resist coat\", \"check etch time and concentration\"], \"verify\": \"Re-inspect the next 5 units for spur, copper, pin-hole, mousebite in zone B2.\", \"log_entry\": \"B2, C1, C3, C3 FAIL spur, copper, pin-hole, mousebite in zone B2; clean B2, C1, C3 environment; inspect resist coat; check etch time and concentration.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0006",
+      "advice": {
+        "summary": "FAIL: short, mousebite, spur, pin-hole in zone B2.",
+        "likely_causes": [
+          "incomplete etch",
+          "contamination",
+          "resist nick"
+        ],
+        "recommended_actions": [
+          "check etch time and concentration",
+          "inspect resist integrity and film edges",
+          "clean phototool",
+          "check handling"
+        ],
+        "verify": "Re-inspect the next 5 units for short, mousebite, spur, pin-hole in zone B2.",
+        "log_entry": "U-BENCH-0006 FAIL short, mousebite, spur, pin-hole in zone B2; check etch time and concentration."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [
+        "attempt 1: repaired: defect name used as cause: replaced from the SOP"
+      ],
+      "ttft_ms": 6462.0,
+      "tok_s": 15.479528883903535,
+      "total_ms": 15377.0,
+      "load_ms": null,
+      "prompt_tokens": 1038,
+      "generated_tokens": 139,
+      "repaired": true,
+      "cached_tokens": 600,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: short, mousebite, spur, pin-hole in zone B2.\", \"likely_causes\": [\"short\", \"mousebite\", \"spur\", \"pin-hole\"], \"recommended_actions\": [\"check etch time and concentration\", \"inspect resist integrity and film edges\", \"clean phototool\", \"check handling\", \"rework by cutting the bridge\"], \"verify\": \"Re-inspect the next 5 units for short, mousebite, spur, pin-hole in zone B2.\", \"log_entry\": \"U-BENCH-0006 FAIL short, mousebite, spur, pin-hole in zone B2; check etch time and concentration.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0007",
+      "advice": {
+        "summary": "FAIL: one high-severity open (break in a copper trace) in zone C1.",
+        "likely_causes": [
+          "over-etching",
+          "scratch or handling damage",
+          "resist flaw",
+          "dust on phototool"
+        ],
+        "recommended_actions": [
+          "check etch time and concentration",
+          "inspect handling and phototool cleanliness",
+          "quarantine the lot"
+        ],
+        "verify": "Re-inspect the next 5 units for open after the correction, and check the etch time and concentration for the next 5 units.",
+        "log_entry": "C1 FAIL open/high C1; check etch time and concentration for the next 5 units."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 6716.0,
+      "tok_s": 15.537670467247933,
+      "total_ms": 15662.0,
+      "load_ms": null,
+      "prompt_tokens": 1055,
+      "generated_tokens": 140,
+      "repaired": false,
+      "cached_tokens": 600,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity open (break in a copper trace) in zone C1.\", \"likely_causes\": [\"over-etching\", \"scratch or handling damage\", \"resist flaw\", \"dust on phototool\"], \"recommended_actions\": [\"check etch time and concentration\", \"inspect handling and phototool cleanliness\", \"quarantine the lot\"], \"verify\": \"Re-inspect the next 5 units for open after the correction, and check the etch time and concentration for the next 5 units.\", \"log_entry\": \"C1 FAIL open/high C1; check etch time and concentration for the next 5 units.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0008",
+      "advice": {
+        "summary": "FAIL: one high-severity mousebite, one high-severity spur, one medium-high spur in zone B2.",
+        "likely_causes": [
+          "resist nick",
+          "film edge damage",
+          "over-etch at edges",
+          "resist defect"
+        ],
+        "recommended_actions": [
+          "inspect resist coat",
+          "check etch uniformity",
+          "clean artwork"
+        ],
+        "verify": "Re-inspect the next 5 units for mousebite, spur, and pin-hole defects in zone B1, and check etch uniformity in zone B2.",
+        "log_entry": "U-BENCH-0008 FAIL mousebite, spur, pin-hole, and copper in zone B1; check etch uniformity in zone B2."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 5794.0,
+      "tok_s": 15.62813063514326,
+      "total_ms": 15776.0,
+      "load_ms": null,
+      "prompt_tokens": 996,
+      "generated_tokens": 157,
+      "repaired": false,
+      "cached_tokens": 600,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity mousebite, one high-severity spur, one medium-high spur in zone B2.\", \"likely_causes\": [\"resist nick\", \"film edge damage\", \"over-etch at edges\", \"resist defect\", \"under-etch residue\"], \"recommended_actions\": [\"inspect resist coat\", \"check etch uniformity\", \"clean artwork\"], \"verify\": \"Re-inspect the next 5 units for mousebite, spur, and pin-hole defects in zone B1, and check etch uniformity in zone B2.\", \"log_entry\": \"U-BENCH-0008 FAIL mousebite, spur, pin-hole, and copper in zone B1; check etch uniformity in zone B2.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0009",
+      "advice": {
+        "summary": "FAIL: one high-severity short (unintended copper bridge between conductors) in zone C2.",
+        "likely_causes": [
+          "under-etching",
+          "resist residue",
+          "conductive debris"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Re-inspect the next 5 units for short after rework.",
+        "log_entry": "U-BENCH-0009 FAIL short high C2; check etchant strength and rinse; rework by cutting the bridge; clean the line."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 9340.0,
+      "tok_s": 14.27592507994518,
+      "total_ms": 18096.0,
+      "load_ms": null,
+      "prompt_tokens": 1223,
+      "generated_tokens": 126,
+      "repaired": false,
+      "cached_tokens": 600,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short (unintended copper bridge between conductors) in zone C2.\", \"likely_causes\": [\"under-etching\", \"resist residue\", \"conductive debris\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Re-inspect the next 5 units for short after rework.\", \"log_entry\": \"U-BENCH-0009 FAIL short high C2; check etchant strength and rinse; rework by cutting the bridge; clean the line.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0010",
+      "advice": {
+        "summary": "FAIL: 1x open, 1x short, 1x spur, 1x copper, 1x mousebite; worst is high open in zone B1.",
+        "likely_causes": [
+          "over-etching",
+          "scratch or handling damage",
+          "under-etching"
+        ],
+        "recommended_actions": [
+          "check etch time and concentration",
+          "inspect handling and phototool cleanliness",
+          "check etchant strength and rinse"
+        ],
+        "verify": "Re-inspect the next 5 units for open.",
+        "log_entry": "U-BENCH-0010 FAIL open/high B1; 3 open in last 50 units."
+      },
+      "backend": "template",
+      "valid": false,
+      "fallback": true,
+      "attempts": 2,
+      "errors": [
+        "attempt 1: missing key 'recommended_actions'",
+        "attempt 1: missing key 'verify'",
+        "attempt 1: missing key 'log_entry'",
+        "attempt 2: missing key 'recommended_actions'",
+        "attempt 2: missing key 'verify'",
+        "attempt 2: missing key 'log_entry'"
+      ],
+      "ttft_ms": 71.0,
+      "tok_s": 14.855538659492339,
+      "total_ms": 17169.0,
+      "load_ms": null,
+      "prompt_tokens": 1064,
+      "generated_tokens": 255,
+      "repaired": false,
+      "cached_tokens": 1063,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short (unintended copper bridge), one high-severity mousebite (notches or missing copper), one high-severity spur (small copper protrusion), one high-severity copper (isolated stray copper).\", \"likely_causes\": [\"under-etch residue\", \"resist defect\", \"contamination\", \"resist nick\", \"film edge damage\", \"over-etch at edges\", \"resist flaw\", \"dust on phototool\", \"isolated stray copper\", \"contamination\", \"resist nick\", \"film edge damage\", \"over-etch at edges\", \"resist flaw\", \"dust on phototool\", \"isolated stray copper\", \"contamination\", \"resist nick\", \"film edge damage\", \"over-etch at edges\", \"resist flaw\", \"dust on phototool\", \"isolated stray copper\", \"contamination\", \"resist nick\", \"film edge damage\", \"over-etch at edges\", \"resist flaw\", \"dust on phototool\", \"isolated stray copper\", \"contamination\", \"resist nick\", \"film edge damage\", \"over-etch at edges\", \"resist flaw\", \"dust on phot"
+    },
+    {
+      "unit_id": "U-BENCH-0011",
+      "advice": {
+        "summary": "FAIL: one high-severity short (unintended copper bridge), one medium-scope mousebite, one low-copper spur.",
+        "likely_causes": [
+          "under-etching",
+          "resist pinhole",
+          "resist defect"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line",
+          "clean artwork"
+        ],
+        "verify": "Re-inspect the next 5 units for short, mousebite, and spur defects, and check etch time and concentration.",
+        "log_entry": "U-BENCH-0011 FAIL short mousebite spur: one high-severity defect(s) in zone A1, one medium-scope defect(s) in zone B1, one low-copper defect(s) in zone B2."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 2,
+      "errors": [
+        "attempt 1: missing key 'recommended_actions'",
+        "attempt 1: missing key 'verify'",
+        "attempt 1: missing key 'log_entry'"
+      ],
+      "ttft_ms": 69.0,
+      "tok_s": 14.414257010570456,
+      "total_ms": 11516.0,
+      "load_ms": null,
+      "prompt_tokens": 1178,
+      "generated_tokens": 166,
+      "repaired": false,
+      "cached_tokens": 1177,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short (unintended copper bridge), one medium-scope mousebite, one low-copper spur.\", \"likely_causes\": [\"under-etching\", \"resist pinhole\", \"resist defect\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\", \"clean artwork\"], \"verify\": \"Re-inspect the next 5 units for short, mousebite, and spur defects, and check etch time and concentration.\", \"log_entry\": \"U-BENCH-0011 FAIL short mousebite spur: one high-severity defect(s) in zone A1, one medium-scope defect(s) in zone B1, one low-copper defect(s) in zone B2.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0012",
+      "advice": {
+        "summary": "FAIL: one high-severity short in zone C1.",
+        "likely_causes": [
+          "under-etch residue",
+          "resist defect"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Re-inspect the next 5 units for short after rework.",
+        "log_entry": "C1-0012 FAIL short high C1; check etchant strength and rinse."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 5349.0,
+      "tok_s": 14.681647940074907,
+      "total_ms": 12024.0,
+      "load_ms": null,
+      "prompt_tokens": 1135,
+      "generated_tokens": 99,
+      "repaired": false,
+      "cached_tokens": 780,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short in zone C1.\", \"likely_causes\": [\"under-etch residue\", \"resist defect\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Re-inspect the next 5 units for short after rework.\", \"log_entry\": \"C1-0012 FAIL short high C1; check etchant strength and rinse.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0013",
+      "advice": {
+        "summary": "FAIL: one high-severity open (break in a copper trace) in zone A1.",
+        "likely_causes": [
+          "over-etching",
+          "scratch or handling damage",
+          "resist flaw",
+          "dust on phototool"
+        ],
+        "recommended_actions": [
+          "check etch time and concentration",
+          "inspect handling and phototool cleanliness",
+          "quarantine the lot"
+        ],
+        "verify": "Re-inspect the next 5 units for open after the correction.",
+        "log_entry": "U-BENCH-0013 FAIL open/high A1; check etch time and concentration."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 5985.0,
+      "tok_s": 15.097141442890733,
+      "total_ms": 14066.0,
+      "load_ms": null,
+      "prompt_tokens": 1091,
+      "generated_tokens": 123,
+      "repaired": false,
+      "cached_tokens": 689,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity open (break in a copper trace) in zone A1.\", \"likely_causes\": [\"over-etching\", \"scratch or handling damage\", \"resist flaw\", \"dust on phototool\"], \"recommended_actions\": [\"check etch time and concentration\", \"inspect handling and phototool cleanliness\", \"quarantine the lot\"], \"verify\": \"Re-inspect the next 5 units for open after the correction.\", \"log_entry\": \"U-BENCH-0013 FAIL open/high A1; check etch time and concentration.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0014",
+      "advice": {
+        "summary": "FAIL: one high-severity short (unintended copper bridge between conductors) in zone A2.",
+        "likely_causes": [
+          "under-etching",
+          "resist residue",
+          "conductive debris"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Re-inspect the next 5 units for short after rework by cutting the bridge.",
+        "log_entry": "U-BENCH-0014 FAIL short high A2; check etchant strength and rinse; rework by cutting the bridge; clean the line."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 7841.0,
+      "tok_s": 15.340706386014983,
+      "total_ms": 16250.0,
+      "load_ms": null,
+      "prompt_tokens": 1063,
+      "generated_tokens": 130,
+      "repaired": false,
+      "cached_tokens": 531,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short (unintended copper bridge between conductors) in zone A2.\", \"likely_causes\": [\"under-etching\", \"resist residue\", \"conductive debris\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Re-inspect the next 5 units for short after rework by cutting the bridge.\", \"log_entry\": \"U-BENCH-0014 FAIL short high A2; check etchant strength and rinse; rework by cutting the bridge; clean the line.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0015",
+      "advice": {
+        "summary": "FAIL: one high-severity open (break in a copper trace) in zone B1.",
+        "likely_causes": [
+          "over-etching",
+          "scratch or handling damage",
+          "resist flaw"
+        ],
+        "recommended_actions": [
+          "check etch time and concentration",
+          "inspect handling and phototool cleanliness",
+          "quarantine the lot"
+        ],
+        "verify": "Re-inspect the next 5 units for open after the correction, and check the next 10 units for spur and pin-hole defects in zone B2.",
+        "log_entry": "U-BENCH-0015 FAIL open/high B2; 3 open in last 50 units."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 2,
+      "errors": [
+        "attempt 1: missing key 'verify'",
+        "attempt 1: missing key 'log_entry'",
+        "attempt 2: repaired: log_entry built from the record"
+      ],
+      "ttft_ms": 68.0,
+      "tok_s": 16.100443131462335,
+      "total_ms": 6838.0,
+      "load_ms": null,
+      "prompt_tokens": 945,
+      "generated_tokens": 110,
+      "repaired": true,
+      "cached_tokens": 944,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity open (break in a copper trace) in zone B1.\", \"likely_causes\": [\"over-etching\", \"scratch or handling damage\", \"resist flaw\"], \"recommended_actions\": [\"check etch time and concentration\", \"inspect handling and phototool cleanliness\", \"quarantine the lot\"], \"verify\": \"Re-inspect the next 5 units for open after the correction, and check the next 10 units for spur and pin-hole defects in zone B2.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0016",
+      "advice": {
+        "summary": "FAIL: one high-severity short (unintended copper bridge), one medium-severity spur, one high-severity pin-hole in zone B3.",
+        "likely_causes": [
+          "under-etch residue",
+          "resist defect",
+          "conductive debris"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "clean artwork",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Re-inspect the next 5 units for short, spur, and pin-hole defects, and clean the line if any defects are found.",
+        "log_entry": "U-BENCH-0016 FAIL short, spur, pin-hole in B3; check etchant strength and rinse; clean artwork; rework by cutting the bridge; clean the line if any defects are found."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 6064.0,
+      "tok_s": 14.914580131971436,
+      "total_ms": 17127.0,
+      "load_ms": null,
+      "prompt_tokens": 1059,
+      "generated_tokens": 166,
+      "repaired": false,
+      "cached_tokens": 648,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short (unintended copper bridge), one medium-severity spur, one high-severity pin-hole in zone B3.\", \"likely_causes\": [\"under-etch residue\", \"resist defect\", \"conductive debris\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"clean artwork\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Re-inspect the next 5 units for short, spur, and pin-hole defects, and clean the line if any defects are found.\", \"log_entry\": \"U-BENCH-0016 FAIL short, spur, pin-hole in B3; check etchant strength and rinse; clean artwork; rework by cutting the bridge; clean the line if any defects are found.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0017",
+      "advice": {
+        "summary": "FAIL: one high-severity short (unintended copper bridge) in zone A3.",
+        "likely_causes": [
+          "under-etch residue",
+          "resist defect"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Re-inspect the next 5 units for short after rework.",
+        "log_entry": "U-BENCH-0017 FAIL short medium A3; check etchant strength and rinse; rework by cutting the bridge; clean the line."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 11043.0,
+      "tok_s": 13.978494623655916,
+      "total_ms": 19413.0,
+      "load_ms": null,
+      "prompt_tokens": 1288,
+      "generated_tokens": 118,
+      "repaired": false,
+      "cached_tokens": 559,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short (unintended copper bridge) in zone A3.\", \"likely_causes\": [\"under-etch residue\", \"resist defect\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Re-inspect the next 5 units for short after rework.\", \"log_entry\": \"U-BENCH-0017 FAIL short medium A3; check etchant strength and rinse; rework by cutting the bridge; clean the line.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0018",
+      "advice": {
+        "summary": "FAIL: short (unintended copper bridge between conductors) in zone B3.",
+        "likely_causes": [
+          "under-etching",
+          "resist residue",
+          "conductive debris"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Verify the next 5 units for short after rework.",
+        "log_entry": "U-BENCH-0018 FAIL short high B3; check etchant strength and rinse; rework by cutting the bridge; clean the line."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 9917.0,
+      "tok_s": 14.366775322950623,
+      "total_ms": 18200.0,
+      "load_ms": null,
+      "prompt_tokens": 1194,
+      "generated_tokens": 120,
+      "repaired": false,
+      "cached_tokens": 531,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: short (unintended copper bridge between conductors) in zone B3.\", \"likely_causes\": [\"under-etching\", \"resist residue\", \"conductive debris\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Verify the next 5 units for short after rework.\", \"log_entry\": \"U-BENCH-0018 FAIL short high B3; check etchant strength and rinse; rework by cutting the bridge; clean the line.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0019",
+      "advice": {
+        "summary": "FAIL: one high-severity open (break in a copper trace) in zone A1.",
+        "likely_causes": [
+          "over-etching",
+          "scratch or handling damage",
+          "resist flaw"
+        ],
+        "recommended_actions": [
+          "check etch time and concentration",
+          "inspect handling and phototool cleanliness",
+          "quarantine the lot"
+        ],
+        "verify": "Re-inspect the next 5 units for open after the correction, and check the etch time and concentration for the next 5 units.",
+        "log_entry": "U-BENCH-0019 FAIL open/high A1; check etch time and concentration for the next 5 units."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 8476.0,
+      "tok_s": 14.818043146655043,
+      "total_ms": 17654.0,
+      "load_ms": null,
+      "prompt_tokens": 1104,
+      "generated_tokens": 137,
+      "repaired": false,
+      "cached_tokens": 531,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity open (break in a copper trace) in zone A1.\", \"likely_causes\": [\"over-etching\", \"scratch or handling damage\", \"resist flaw\"], \"recommended_actions\": [\"check etch time and concentration\", \"inspect handling and phototool cleanliness\", \"quarantine the lot\"], \"verify\": \"Re-inspect the next 5 units for open after the correction, and check the etch time and concentration for the next 5 units.\", \"log_entry\": \"U-BENCH-0019 FAIL open/high A1; check etch time and concentration for the next 5 units.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0020",
+      "advice": {
+        "summary": "FAIL: one high-severity short (unintended copper bridge between conductors) in zone B2.",
+        "likely_causes": [
+          "under-etching",
+          "resist residue",
+          "conductive debris"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Re-inspect the next 5 units for short after rework by cutting the bridge.",
+        "log_entry": "U-BENCH-0020 FAIL short high B2; check etchant strength and rinse; rework by cutting the bridge."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 7384.0,
+      "tok_s": 15.341188021600393,
+      "total_ms": 15532.0,
+      "load_ms": null,
+      "prompt_tokens": 1057,
+      "generated_tokens": 126,
+      "repaired": false,
+      "cached_tokens": 559,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short (unintended copper bridge between conductors) in zone B2.\", \"likely_causes\": [\"under-etching\", \"resist residue\", \"conductive debris\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Re-inspect the next 5 units for short after rework by cutting the bridge.\", \"log_entry\": \"U-BENCH-0020 FAIL short high B2; check etchant strength and rinse; rework by cutting the bridge.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0021",
+      "advice": {
+        "summary": "FAIL: short, mousebite, and pin-hole defects in zones B2, A2, and C1 respectively.",
+        "likely_causes": [
+          "under-etch residue",
+          "resist defect",
+          "conductive debris"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "clean artwork",
+          "rework by cutting the bridge"
+        ],
+        "verify": "Re-inspect the next 5 units for short, mousebite, and pin-hole defects in zones B2, A2, and C1 respectively.",
+        "log_entry": "U-BENCH-0021 FAIL short, mousebite, and pin-hole defects in zones B2, A2, and C1 respectively; check etchant strength and rinse; clean artwork; rework by cutting the bridge."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 8356.0,
+      "tok_s": 14.724949064641601,
+      "total_ms": 19154.0,
+      "load_ms": null,
+      "prompt_tokens": 1094,
+      "generated_tokens": 160,
+      "repaired": false,
+      "cached_tokens": 531,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: short, mousebite, and pin-hole defects in zones B2, A2, and C1 respectively.\", \"likely_causes\": [\"under-etch residue\", \"resist defect\", \"conductive debris\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"clean artwork\", \"rework by cutting the bridge\"], \"verify\": \"Re-inspect the next 5 units for short, mousebite, and pin-hole defects in zones B2, A2, and C1 respectively.\", \"log_entry\": \"U-BENCH-0021 FAIL short, mousebite, and pin-hole defects in zones B2, A2, and C1 respectively; check etchant strength and rinse; clean artwork; rework by cutting the bridge.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0022",
+      "advice": {
+        "summary": "FAIL: short, mousebite, and spur defects in zone B2.",
+        "likely_causes": [
+          "incomplete etch",
+          "contamination",
+          "resist nick"
+        ],
+        "recommended_actions": [
+          "clean the line",
+          "rework by cutting the bridge",
+          "clean artwork"
+        ],
+        "verify": "Verify the next 5 units for short, mousebite, and spur defects in zone B2.",
+        "log_entry": "U-BENCH-0022 FAIL short, mousebite, and spur defects in zone B2; clean the line."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 2,
+      "errors": [
+        "attempt 1: missing key 'recommended_actions'",
+        "attempt 1: missing key 'verify'",
+        "attempt 1: missing key 'log_entry'",
+        "attempt 2: repaired: defect name used as cause: replaced from the SOP"
+      ],
+      "ttft_ms": 69.0,
+      "tok_s": 14.460068983815335,
+      "total_ms": 7607.0,
+      "load_ms": null,
+      "prompt_tokens": 1193,
+      "generated_tokens": 110,
+      "repaired": true,
+      "cached_tokens": 1192,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: short, mousebite, and spur defects in zone B2.\", \"likely_causes\": [\"short\", \"mousebite\", \"spur\"], \"recommended_actions\": [\"clean the line\", \"rework by cutting the bridge\", \"clean artwork\"], \"verify\": \"Verify the next 5 units for short, mousebite, and spur defects in zone B2.\", \"log_entry\": \"U-BENCH-0022 FAIL short, mousebite, and spur defects in zone B2; clean the line.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0023",
+      "advice": {
+        "summary": "FAIL: one high-severity short, one high-severity spur, one medium-severity copper in zone B1.",
+        "likely_causes": [
+          "under-etch residue",
+          "resist defect",
+          "conductive debris"
+        ],
+        "recommended_actions": [
+          "check etch time and concentration",
+          "clean artwork",
+          "rework by cutting the bridge"
+        ],
+        "verify": "Re-inspect the next 5 units for short, spur, and copper defects in zone B1.",
+        "log_entry": "U-BENCH-0023 FAIL open/high C2; 3 open in last 50 units."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [
+        "attempt 1: repaired: log_entry built from the record"
+      ],
+      "ttft_ms": 7398.0,
+      "tok_s": 15.248171775322858,
+      "total_ms": 13825.0,
+      "load_ms": null,
+      "prompt_tokens": 1060,
+      "generated_tokens": 99,
+      "repaired": true,
+      "cached_tokens": 559,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short, one high-severity spur, one medium-severity copper in zone B1.\", \"likely_causes\": [\"under-etch residue\", \"resist defect\", \"conductive debris\"], \"recommended_actions\": [\"check etch time and concentration\", \"clean artwork\", \"rework by cutting the bridge\"], \"verify\": \"Re-inspect the next 5 units for short, spur, and copper defects in zone B1.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0024",
+      "advice": {
+        "summary": "FAIL: one high-severity short, one medium short, one high mousebite, one medium mousebite, one low pin-hole, one high spur.",
+        "likely_causes": [
+          "incomplete etch",
+          "contamination",
+          "resist nick"
+        ],
+        "recommended_actions": [
+          "clean phototool",
+          "inspect resist coat",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Re-inspect the next 5 units for short, mousebite, spur, mousebite, and pin-hole defects.",
+        "log_entry": "U-BENCH-0024 FAIL short, mousebite, spur, mousebite, pin-hole; clean phototool; inspect resist coat; rework by cutting the bridge; clean the line; clean artwork."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [
+        "attempt 1: repaired: defect name used as cause: replaced from the SOP"
+      ],
+      "ttft_ms": 9264.0,
+      "tok_s": 14.54188598447676,
+      "total_ms": 20473.0,
+      "load_ms": null,
+      "prompt_tokens": 1178,
+      "generated_tokens": 164,
+      "repaired": true,
+      "cached_tokens": 559,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short, one medium short, one high mousebite, one medium mousebite, one low pin-hole, one high spur.\", \"likely_causes\": [\"short\", \"mousebite\", \"spur\", \"mousebite\"], \"recommended_actions\": [\"clean phototool\", \"inspect resist coat\", \"rework by cutting the bridge\", \"clean the line\", \"clean artwork\"], \"verify\": \"Re-inspect the next 5 units for short, mousebite, spur, mousebite, and pin-hole defects.\", \"log_entry\": \"U-BENCH-0024 FAIL short, mousebite, spur, mousebite, pin-hole; clean phototool; inspect resist coat; rework by cutting the bridge; clean the line; clean artwork.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0025",
+      "advice": {
+        "summary": "FAIL: one high-severity short, one high-severity mousebite, one high-severity spur, one high-severity copper.",
+        "likely_causes": [
+          "incomplete etch",
+          "contamination",
+          "resist nick"
+        ],
+        "recommended_actions": [
+          "clean the line",
+          "rework by cutting the bridge",
+          "clean artwork",
+          "clean phototool"
+        ],
+        "verify": "Re-inspect the next 5 units for short, mousebite, spur, and copper defects.",
+        "log_entry": "U-BENCH-0025 FAIL short, mousebite, spur, copper; check etch time and concentration; inspect resist coat; clean phototool; clean environment."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [
+        "attempt 1: repaired: defect name used as cause: replaced from the SOP"
+      ],
+      "ttft_ms": 6011.0,
+      "tok_s": 14.423076923076923,
+      "total_ms": 17035.0,
+      "load_ms": null,
+      "prompt_tokens": 1180,
+      "generated_tokens": 160,
+      "repaired": true,
+      "cached_tokens": 780,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity short, one high-severity mousebite, one high-severity spur, one high-severity copper.\", \"likely_causes\": [\"short\", \"mousebite\", \"spur\", \"copper\"], \"recommended_actions\": [\"clean the line\", \"rework by cutting the bridge\", \"clean artwork\", \"clean phototool\", \"check etch time and concentration\", \"inspect resist coat\", \"clean environment\"], \"verify\": \"Re-inspect the next 5 units for short, mousebite, spur, and copper defects.\", \"log_entry\": \"U-BENCH-0025 FAIL short, mousebite, spur, copper; check etch time and concentration; inspect resist coat; clean phototool; clean environment.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0026",
+      "advice": {
+        "summary": "FAIL: short (unintended copper bridge between conductors) in zone B1.",
+        "likely_causes": [
+          "under-etching",
+          "resist residue",
+          "conductive debris"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Verify the next 5 units for short (unintended copper bridge between conductors) before rework.",
+        "log_entry": "B1-0026 FAIL short (unintended copper bridge between conductors) in zone B1; check etchant strength and rinse."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 6944.0,
+      "tok_s": 14.29209468512729,
+      "total_ms": 15900.0,
+      "load_ms": null,
+      "prompt_tokens": 1236,
+      "generated_tokens": 129,
+      "repaired": false,
+      "cached_tokens": 780,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: short (unintended copper bridge between conductors) in zone B1.\", \"likely_causes\": [\"under-etching\", \"resist residue\", \"conductive debris\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Verify the next 5 units for short (unintended copper bridge between conductors) before rework.\", \"log_entry\": \"B1-0026 FAIL short (unintended copper bridge between conductors) in zone B1; check etchant strength and rinse.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0027",
+      "advice": {
+        "summary": "FAIL: short (unintended copper bridge between conductors) in zone B1.",
+        "likely_causes": [
+          "under-etching",
+          "resist residue",
+          "conductive debris"
+        ],
+        "recommended_actions": [
+          "check etchant strength and rinse",
+          "rework by cutting the bridge",
+          "clean the line"
+        ],
+        "verify": "Re-inspect the next 5 units for short after rework.",
+        "log_entry": "B1 SHORT un-intended copper bridge between conductors; check etchant strength and rinse; rework by cutting the bridge; clean the line."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 5829.0,
+      "tok_s": 14.56953642384106,
+      "total_ms": 14134.0,
+      "load_ms": null,
+      "prompt_tokens": 1165,
+      "generated_tokens": 122,
+      "repaired": false,
+      "cached_tokens": 780,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: short (unintended copper bridge between conductors) in zone B1.\", \"likely_causes\": [\"under-etching\", \"resist residue\", \"conductive debris\"], \"recommended_actions\": [\"check etchant strength and rinse\", \"rework by cutting the bridge\", \"clean the line\"], \"verify\": \"Re-inspect the next 5 units for short after rework.\", \"log_entry\": \"B1 SHORT un-intended copper bridge between conductors; check etchant strength and rinse; rework by cutting the bridge; clean the line.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0028",
+      "advice": {
+        "summary": "FAIL: short, mousebite, and pin-hole defects in zone A1.",
+        "likely_causes": [
+          "incomplete etch",
+          "contamination",
+          "resist nick"
+        ],
+        "recommended_actions": [
+          "clean phototool",
+          "inspect resist coat",
+          "rework by cutting the bridge"
+        ],
+        "verify": "Re-inspect the next 5 units for short, mousebite, and pin-hole defects in zone A1.",
+        "log_entry": "A1 SHORT MOUSEBITE PIN-HOLE FAIL short, mousebite, and pin-hole in zone A1; clean phototool; inspect resist coat."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 2,
+      "errors": [
+        "attempt 1: missing key 'recommended_actions'",
+        "attempt 1: missing key 'verify'",
+        "attempt 1: missing key 'log_entry'",
+        "attempt 2: repaired: defect name used as cause: replaced from the SOP"
+      ],
+      "ttft_ms": 66.0,
+      "tok_s": 14.735833233497065,
+      "total_ms": 8413.0,
+      "load_ms": null,
+      "prompt_tokens": 1135,
+      "generated_tokens": 124,
+      "repaired": true,
+      "cached_tokens": 1134,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: short, mousebite, and pin-hole defects in zone A1.\", \"likely_causes\": [\"short\", \"mousebite\", \"pin-hole\"], \"recommended_actions\": [\"clean phototool\", \"inspect resist coat\", \"rework by cutting the bridge\"], \"verify\": \"Re-inspect the next 5 units for short, mousebite, and pin-hole defects in zone A1.\", \"log_entry\": \"A1 SHORT MOUSEBITE PIN-HOLE FAIL short, mousebite, and pin-hole in zone A1; clean phototool; inspect resist coat.\"}"
+    },
+    {
+      "unit_id": "U-BENCH-0029",
+      "advice": {
+        "summary": "FAIL: one high-severity open (copper trace), one high-severity mousebite, one high-severity spur, one high-severity copper.",
+        "likely_causes": [
+          "over-etching",
+          "scratch or handling damage",
+          "resist flaw",
+          "dust on phototool"
+        ],
+        "recommended_actions": [
+          "check etch time and concentration",
+          "inspect handling and phototool cleanliness",
+          "clean artwork",
+          "check rinse and strip steps"
+        ],
+        "verify": "Re-inspect the next 5 units for open after the correction, mousebite along the edge, spur on the edge, and copper along the trace.",
+        "log_entry": "U-BENCH-0029 FAIL one high-severity open, one high-severity mousebite, one high-severity spur, one high-severity copper."
+      },
+      "backend": "executorch",
+      "valid": true,
+      "fallback": false,
+      "attempts": 1,
+      "errors": [],
+      "ttft_ms": 6352.0,
+      "tok_s": 13.199027440083363,
+      "total_ms": 20747.0,
+      "load_ms": null,
+      "prompt_tokens": 1076,
+      "generated_tokens": 191,
+      "repaired": false,
+      "cached_tokens": 651,
+      "loop_stop": false,
+      "queue_ms": null,
+      "e2e_ms": null,
+      "raw": "{\"summary\": \"FAIL: one high-severity open (copper trace), one high-severity mousebite, one high-severity spur, one high-severity copper.\", \"likely_causes\": [\"over-etching\", \"scratch or handling damage\", \"resist flaw\", \"dust on phototool\", \"under-etch residue\", \"resist defect\"], \"recommended_actions\": [\"check etch time and concentration\", \"inspect handling and phototool cleanliness\", \"clean artwork\", \"check rinse and strip steps\", \"check handling\", \"quarantine the lot\"], \"verify\": \"Re-inspect the next 5 units for open after the correction, mousebite along the edge, spur on the edge, and copper along the trace.\", \"log_entry\": \"U-BENCH-0029 FAIL one high-severity open, one high-severity mousebite, one high-severity spur, one high-severity copper.\"}"
+    }
+  ]
+}

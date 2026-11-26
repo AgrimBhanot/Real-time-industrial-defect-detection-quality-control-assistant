@@ -1,0 +1,198 @@
+{
+  "profile": "metal_parts",
+  "backend": "tensorrt",
+  "split": "val",
+  "clean_split": "none",
+  "iou_threshold": 0.5,
+  "conf_threshold": 0.25,
+  "n_images": 203,
+  "n_defective_units": 88,
+  "n_clean_units": 115,
+  "class_conf": {},
+  "per_class": {
+    "tip_damage": {
+      "tp": 3,
+      "fp": 1,
+      "fn": 1,
+      "precision": 0.75,
+      "recall": 0.75,
+      "f1": 0.75,
+      "hard_case_recall": 0.0
+    },
+    "scratch": {
+      "tp": 22,
+      "fp": 21,
+      "fn": 24,
+      "precision": 0.5116279069767442,
+      "recall": 0.4782608695652174,
+      "f1": 0.49438202247191015,
+      "hard_case_recall": 0.5
+    },
+    "thread_damage": {
+      "tp": 3,
+      "fp": 2,
+      "fn": 5,
+      "precision": 0.6,
+      "recall": 0.375,
+      "f1": 0.4615384615384615,
+      "hard_case_recall": 0.0
+    },
+    "deformation": {
+      "tp": 18,
+      "fp": 0,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.9473684210526315,
+      "f1": 0.972972972972973,
+      "hard_case_recall": 1.0
+    },
+    "discolouration": {
+      "tp": 3,
+      "fp": 1,
+      "fn": 0,
+      "precision": 0.75,
+      "recall": 1.0,
+      "f1": 0.8571428571428571,
+      "hard_case_recall": 1.0
+    },
+    "flipped": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "hard_case_recall": 1.0
+    },
+    "rust": {
+      "tp": 8,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "hard_case_recall": 1.0
+    },
+    "hole": {
+      "tp": 0,
+      "fp": 2,
+      "fn": 3,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "hard_case_recall": 0.0
+    },
+    "paint_defect": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "hard_case_recall": 1.0
+    },
+    "mismatch": {
+      "tp": 16,
+      "fp": 16,
+      "fn": 14,
+      "precision": 0.5,
+      "recall": 0.5333333333333333,
+      "f1": 0.5161290322580646,
+      "hard_case_recall": 0.375
+    }
+  },
+  "macro": {
+    "precision": 0.7111627906976745,
+    "recall": 0.7083962623951182,
+    "f1": 0.7052165346384267
+  },
+  "by_group_exposure": {
+    "all": {
+      "tp": 82,
+      "fn": 48,
+      "fp": 43,
+      "clean": 115,
+      "false_rejects": 4,
+      "defective": 88,
+      "escapes": 8
+    }
+  },
+  "hard_case_recall_overall": 0.5714285714285714,
+  "unit_level": {
+    "escape_rate": 0.09090909090909091,
+    "false_reject_rate": 0.034782608695652174,
+    "verdict_matrix_gt_to_pred": {
+      "PASS": {
+        "PASS": 110,
+        "REVIEW": 4,
+        "PASS_WITH_NOTE": 1
+      },
+      "FAIL": {
+        "FAIL": 48,
+        "REVIEW": 5,
+        "PASS": 2
+      },
+      "REVIEW": {
+        "REVIEW": 13,
+        "FAIL": 3,
+        "PASS": 2
+      },
+      "PASS_WITH_NOTE": {
+        "REVIEW": 7,
+        "PASS_WITH_NOTE": 4,
+        "FAIL": 4
+      }
+    }
+  },
+  "confusion_gt_to_pred": {
+    "background": {
+      "scratch": 21,
+      "hole": 2,
+      "mismatch": 16,
+      "discolouration": 1,
+      "tip_damage": 1,
+      "thread_damage": 2
+    },
+    "hole": {
+      "missed": 3
+    },
+    "scratch": {
+      "scratch": 22,
+      "missed": 24
+    },
+    "mismatch": {
+      "mismatch": 16,
+      "missed": 14
+    },
+    "paint_defect": {
+      "paint_defect": 6
+    },
+    "rust": {
+      "rust": 8
+    },
+    "deformation": {
+      "deformation": 18,
+      "missed": 1
+    },
+    "discolouration": {
+      "discolouration": 3
+    },
+    "flipped": {
+      "flipped": 3
+    },
+    "tip_damage": {
+      "tip_damage": 3,
+      "missed": 1
+    },
+    "thread_damage": {
+      "missed": 5,
+      "thread_damage": 3
+    }
+  },
+  "latency_ms": {
+    "mean": 44.127992945872336,
+    "p50": 43.52550899784546,
+    "p95": 46.47101310110884
+  },
+  "evaluated_at": "2026-11-26T03:43:21"
+}

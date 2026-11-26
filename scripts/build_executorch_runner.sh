@@ -28,6 +28,8 @@ cd "$ET_DIR"
 git submodule sync -q
 git submodule update -q --init --recursive --depth 1
 
+python3 "$ROOT/native/patch_prefix_cache.py" . # reuse the unchanged start of each prompt
+
 echo "== [1/3] ExecuTorch core + XNNPACK + LLM extensions (preset 'llm') =="
 cmake --preset llm -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=cmake-out \
   -DPYTHON_EXECUTABLE="$PY" -DSUPPORT_REGEX_LOOKAHEAD=ON

@@ -66,7 +66,7 @@ def test_flask_app_routes(demo_dir):
     client = create_app(pipe, cfg).test_client()
     state = client.get("/api/state").get_json()
     assert state["record"] is not None and state["vision_backend"] == "groundtruth"
-    assert len(client.get("/api/log").get_json()) == 4
+    assert client.get("/api/log").get_json()["total"] == 4
     assert client.get("/api/export.csv").data.decode().startswith("unit_id,")
-    assert "trend" in client.post("/api/shift_summary").get_json()
+    assert "trend" in client.post("/api/shift_summary", headers={"X-QC": "1"}).get_json()
     assert b"QC Inspector" in client.get("/").data

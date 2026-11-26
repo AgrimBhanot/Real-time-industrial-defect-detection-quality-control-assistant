@@ -4,200 +4,121 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QC Inspector</title>
-<style>
-  :root {
-    --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --line: #e3e6eb;
-    --pass: #1f9d55; --review: #d98a00; --fail: #d64545; --low: #1f9d55; --medium: #d98a00; --high: #d64545;
-    --accent: #2f6fde;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #11151c; --panel: #1a2029; --text: #e6e9ef; --muted: #98a2b3; --line: #2a313c; }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif; }
-  header { display: flex; gap: 16px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line);
-           background: var(--panel); flex-wrap: wrap; }
-  header h1 { font-size: 16px; margin: 0; }
-  .chip { font-size: 12px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
-  main { display: grid; grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr); gap: 16px; padding: 16px; }
-  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
-  .panel h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
-  .view { width: 100%; border-radius: 6px; background: #000; display: block; aspect-ratio: 4/3; object-fit: contain; }
-  .badge { font-size: 34px; font-weight: 700; padding: 10px 14px; border-radius: 8px; color: #fff; text-align: center;
-           background: var(--muted); }
-  .badge.PASS, .badge.PASS_WITH_NOTE { background: var(--pass); }
-  .badge.REVIEW { background: var(--review); } .badge.FAIL { background: var(--fail); }
-  .unit { color: var(--muted); font-size: 12px; margin-top: 6px; text-align: center; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--muted); font-weight: 600; font-size: 12px; }
-  .sev { font-weight: 700; } .sev.low { color: var(--low); } .sev.medium { color: var(--medium); } .sev.high { color: var(--high); }
-  .stack > * + * { margin-top: 16px; }
-  .advice dt { font-weight: 600; margin-top: 8px; } .advice dd { margin: 2px 0 0 0; }
-  .advice ul { margin: 2px 0 0 18px; padding: 0; }
-  .muted { color: var(--muted); }
-  .metrics { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
-  .metric { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
-  .metric b { display: block; font-size: 18px; } .metric span { font-size: 11px; color: var(--muted); }
-  .full { grid-column: 1 / -1; }
-  .scroll { max-height: 320px; overflow: auto; }
-  button, a.btn { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel);
-                  color: var(--text); cursor: pointer; text-decoration: none; }
-  button:hover, a.btn:hover { border-color: var(--accent); }
-  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
-  .tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); }
-  .tag.warn { color: var(--review); border-color: var(--review); }
-</style>
+<link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
-<header>
-  <h1>QC Inspector</h1>
-  <span class="chip" id="profile">profile</span>
-  <span class="chip" id="vision">vision</span>
-  <span class="chip" id="llm">advisory</span>
-  <span class="chip" id="counts">0 units</span>
+<header class="top">
+  <div class="brand"><span class="mark" aria-hidden="true"></span><b>QC Inspector</b></div>
+  <nav role="tablist" aria-label="Pages">
+    <button role="tab" data-page="inspect">Inspect</button>
+    <button role="tab" data-page="log">Inspection log <span class="count" id="open-count" hidden></span></button>
+    <button role="tab" data-page="analytics">Analytics</button>
+    <button role="tab" data-page="system">System</button>
+  </nav>
+  <div class="status">
+    <span class="pill" id="net-pill"></span>
+    <span class="pill" id="llm-pill"></span>
+    <label class="line-pick">Line <select id="line"></select></label>
+  </div>
 </header>
-<main>
-  <section class="stack">
-    <div class="panel" id="camera-panel" hidden>
-      <h2>Live camera <span class="muted" id="camera-status"></span></h2>
-      <img id="camera" class="view" alt="live camera feed">
+<div class="alert" id="alert" role="alert" hidden></div>
+
+<main id="page-inspect" class="page" hidden>
+  <section class="kpis" id="kpis" aria-label="This session"></section>
+  <div class="cols">
+    <section class="panel viewer">
+      <div class="view-wrap">
+        <img id="view" alt="live inspection view">
+        <div class="view-msg" id="view-msg" hidden></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn primary" id="play" aria-label="pause or play"></button>
+        <button class="btn" id="step">Next unit</button>
+        <button class="btn primary" id="inspect-now" hidden>Inspect now</button>
+        <label class="pace" id="pace-wrap">Pace <input type="range" id="pace" min="0" max="6" step="1"> <span id="pace-val"></span></label>
+        <span class="grow"></span>
+        <span class="muted" id="view-info"></span>
+      </div>
+      <div class="strip" id="strip" aria-label="latest units"></div>
+    </section>
+    <section class="side">
+      <div class="panel verdict" id="verdict">
+        <div class="v-word" id="v-word">Waiting</div>
+        <div class="v-why" id="v-why"></div>
+        <div class="v-meta"><span id="v-unit"></span><span id="v-label"></span></div>
+      </div>
+      <div class="panel" id="parts-panel" hidden>
+        <h2>Parts in view</h2>
+        <div class="parts" id="parts"></div>
+      </div>
+      <div class="panel">
+        <h2>Findings</h2>
+        <div id="findings"></div>
+      </div>
+      <div class="panel">
+        <h2>Advice from Llama <span class="muted" id="adv-unit"></span></h2>
+        <div id="advice"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<main id="page-log" class="page" hidden>
+  <form class="panel filters" id="filters">
+    <div class="chips" id="f-results" role="group" aria-label="Result"></div>
+    <label>Line <select name="profile"></select></label>
+    <label>Defect <select name="defect"></select></label>
+    <label>Decision <select name="decision"></select></label>
+    <label>Against labels <select name="gt_outcome">
+      <option value="">any</option><option value="ok">agrees</option><option value="escape">missed defect</option><option value="false_reject">false reject</option>
+    </select></label>
+    <label>Session <select name="session"></select></label>
+    <label>From <input type="date" name="from"></label>
+    <label>To <input type="date" name="to"></label>
+    <label class="grow">Search <input type="search" name="q" placeholder="unit, file, advice or note"></label>
+    <button type="button" class="btn" id="f-clear">Clear</button>
+    <a class="btn" id="f-csv" download>Export CSV</a>
+  </form>
+  <section class="panel tight">
+    <div class="log-head"><b id="log-total"></b><span id="log-mix"></span><span class="grow"></span><label class="muted"><input type="checkbox" id="log-auto" checked> update live</label></div>
+    <div class="table-wrap">
+      <table class="log">
+        <thead><tr><th></th><th>Unit</th><th>Line</th><th>Result</th><th>Findings</th><th>Labels</th><th>Advice</th><th>Decision</th><th class="num">Vision</th></tr></thead>
+        <tbody id="log-rows"></tbody>
+      </table>
     </div>
-    <div class="panel" id="inspection-panel">
-      <h2>Live inspection</h2>
-      <img id="stream" class="view" src="/stream.mjpg" alt="live inspection stream">
-    </div>
-  </section>
-  <section class="stack">
-    <div class="panel">
-      <div class="badge" id="badge">WAITING</div>
-      <div class="unit" id="unit">-</div>
-    </div>
-    <div class="panel">
-      <h2>Findings</h2>
-      <table><thead><tr><th>Defect</th><th>Severity</th><th>Conf</th><th>Zone</th><th>Size</th></tr></thead>
-        <tbody id="dets"><tr><td colspan="5" class="muted">no defects</td></tr></tbody></table>
-      <div class="muted" id="trace" style="margin-top:8px;font-size:12px"></div>
-    </div>
-    <div class="panel">
-      <h2>Advice <span class="muted" id="advice-unit"></span></h2>
-      <dl class="advice" id="advice"><dd class="muted">no advice yet</dd></dl>
-    </div>
-    <div class="panel">
-      <h2>On-device metrics</h2>
-      <div class="metrics" id="metrics"></div>
-    </div>
-  </section>
-  <section class="panel full">
-    <div class="row">
-      <h2 style="margin:0;flex:1">Inspection log</h2>
-      <button id="summary-btn">Shift summary</button>
-      <a class="btn" href="/api/export.csv">Export CSV</a>
-    </div>
-    <div id="summary" class="muted" style="margin-bottom:10px"></div>
-    <div class="scroll">
-      <table><thead><tr><th>Unit</th><th>Time</th><th>Result</th><th>Defects</th><th>Vision ms</th><th>Advice</th></tr></thead>
-        <tbody id="log"></tbody></table>
-    </div>
+    <div class="pager"><button class="btn" id="p-new">Newer</button><span class="muted" id="p-pos"></span><button class="btn" id="p-old">Older</button></div>
   </section>
 </main>
-<script>
-const $ = (id) => document.getElementById(id);
-const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
-const fmt = (v, d = 1) => (v == null || Number.isNaN(v)) ? "-" : Number(v).toFixed(d);
 
-function renderAdvice(a) {
-  const box = $("advice"); box.replaceChildren();
-  if (!a) { box.append(el("dd", "pending ...", "muted")); return; }
-  const fields = [["Summary", a.advice.summary], ["Likely causes", a.advice.likely_causes],
-                  ["Actions", a.advice.recommended_actions], ["Verify", a.advice.verify], ["Log", a.advice.log_entry]];
-  for (const [k, v] of fields) {
-    if (v == null) continue;
-    box.append(el("dt", k));
-    const dd = el("dd");
-    if (Array.isArray(v)) { const ul = el("ul"); v.forEach((x) => ul.append(el("li", x))); dd.append(ul); }
-    else dd.textContent = v;
-    box.append(dd);
-  }
-  const meta = el("dd", null, "muted");
-  meta.style.marginTop = "8px";
-  meta.textContent = `${a.backend}${a.fallback ? " (fallback)" : ""} · TTFT ${fmt(a.ttft_ms, 0)} ms · ${fmt(a.tok_s)} tok/s · LLM ${fmt(a.total_ms, 0)} ms · frame→advice ${fmt(a.e2e_ms, 0)} ms`;
-  if (a.fallback) meta.append(" ", el("span", "LLM output rejected", "tag warn"));
-  box.append(meta);
-}
+<main id="page-analytics" class="page" hidden>
+  <form class="panel filters" id="a-filters">
+    <label>Line <select name="profile"></select></label>
+    <label>Session <select name="session"></select></label>
+    <span class="grow"></span>
+    <button type="button" class="btn primary" id="summary-btn">Ask Llama for a shift summary</button>
+  </form>
+  <section class="panel" id="summary" hidden></section>
+  <section class="kpis" id="a-kpis"></section>
+  <div class="grid2">
+    <section class="panel"><h2>Results over time</h2><div id="a-trend"></div></section>
+    <section class="panel"><h2>Defects by type</h2><div id="a-defects"></div></section>
+    <section class="panel"><h2>Verdicts against the dataset's labels</h2><div id="a-labels"></div></section>
+    <section class="panel"><h2>Where defects occur</h2><div id="a-zones"></div></section>
+    <section class="panel"><h2>Llama advice</h2><div id="a-advice"></div></section>
+    <section class="panel"><h2>Operator decisions</h2><div id="a-decisions"></div></section>
+  </div>
+</main>
 
-function metric(label, value) { const m = el("div", null, "metric"); m.append(el("b", value), el("span", label)); return m; }
+<main id="page-system" class="page" hidden>
+  <section class="kpis" id="s-kpis"></section>
+  <div class="grid2" id="s-charts"></div>
+  <section class="panel"><h2>Runtimes</h2><div id="s-info"></div></section>
+</main>
 
-async function tick() {
-  try {
-    const s = await (await fetch("/api/state")).json();
-    $("profile").textContent = `profile: ${s.profile}`;
-    $("vision").textContent = `vision: ${s.vision_backend}`;
-    $("llm").textContent = `advisory: ${s.advisory_backend}`;
-    const total = Object.values(s.counts).reduce((a, b) => a + b, 0);
-    $("counts").textContent = `${total} units · ${s.counts.FAIL || 0} fail · ${s.counts.REVIEW || 0} review`;
-    $("inspection-panel").hidden = !s.inspect;
-    $("camera-panel").hidden = !s.camera;
-    if (s.camera) {
-      if (!$("camera").src) $("camera").src = "/camera.mjpg";
-      $("camera").style.visibility = s.camera.live ? "visible" : "hidden";  // hide the last view of a dead camera
-      $("camera-status").textContent = s.camera.live ? `${s.camera.name} · ${fmt(s.fps)} FPS` : `NO SIGNAL: ${s.camera.error || "connecting ..."}`;
-    }
-    if (!s.inspect) $("badge").textContent = "CAMERA ONLY";
-    const r = s.record;
-    if (r) {
-      $("badge").className = `badge ${r.inspection_result}`;
-      $("badge").textContent = r.inspection_result.replace(/_/g, " ");
-      $("unit").textContent = `${r.unit_id} · ${r.timestamp}`;
-      const tb = $("dets"); tb.replaceChildren();
-      if (!r.detections.length) { const tr = el("tr"); const td = el("td", "no defects", "muted"); td.colSpan = 5; tr.append(td); tb.append(tr); }
-      for (const d of r.detections) {
-        const tr = el("tr");
-        tr.append(el("td", d.defect + (d.needs_review ? " ?" : "")), el("td", d.severity, `sev ${d.severity}`),
-                  el("td", fmt(d.confidence, 2)), el("td", d.zone), el("td", `${Number(d.size).toPrecision(3)} ${d.size_unit}`));
-        tb.append(tr);
-      }
-      $("trace").textContent = r.rule_trace.join(" | ");
-      const adv = r.detections.length ? s.advice_current : s.advice_latest;
-      $("advice-unit").textContent = adv ? adv.unit_id : "";
-      if (adv || r.detections.length) renderAdvice(adv || null);
-      else $("advice").replaceChildren(el("dd", "no advice yet", "muted"));
-      const t = r.timings_ms, tel = s.telemetry || {};
-      $("metrics").replaceChildren(
-        metric("FPS", fmt(s.fps)), metric("vision ms", fmt(t.vision)), metric("infer ms", fmt(t.infer)),
-        metric("e2e ms", fmt(t.e2e)), metric("advice queue", String(s.advice_pending)),
-        metric("RAM MB", fmt(tel.ram_used_mb, 0)), metric("app RSS MB", fmt(tel.proc_rss_mb, 0)),
-        metric("Llama RSS MB", tel.llm_rss_mb ? fmt(tel.llm_rss_mb, 0) : "-"), metric("GPU %", fmt(tel.gpu_pct, 0)),
-        metric("temp °C", fmt(tel.temp_c)), metric("power W", tel.power_mw ? fmt(tel.power_mw / 1000, 2) : "-"));
-    }
-  } catch (e) { /* server restarting */ }
-}
-
-async function refreshLog() {
-  try {
-    const rows = await (await fetch("/api/log?limit=100")).json();
-    const tb = $("log"); tb.replaceChildren();
-    for (const x of rows) {
-      const tr = el("tr");
-      tr.append(el("td", x.unit_id), el("td", (x.ts || "").slice(11, 19)), el("td", x.result),
-                el("td", x.defects || "-"), el("td", fmt(x.vision_ms)),
-                el("td", x.advice_summary ? `${x.advice_summary}${x.advice_fallback ? " [fallback]" : ""}` : ""));
-      tb.append(tr);
-    }
-  } catch (e) {}
-}
-
-$("summary-btn").onclick = async () => {
-  $("summary").textContent = "generating shift summary ...";
-  try {
-    const s = await (await fetch("/api/shift_summary", { method: "POST" })).json();
-    $("summary").textContent = `[${s.backend}] ${s.trend} ${s.likely_process_issue} Actions: ${(s.actions || []).join("; ")}`;
-  } catch (e) { $("summary").textContent = "summary failed"; }
-};
-
-setInterval(tick, 500); setInterval(refreshLog, 2000); tick(); refreshLog();
-</script>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title" hidden></aside>
+<div class="scrim" id="scrim" hidden></div>
+<div class="tip" id="tip" hidden></div>
+<script src="/static/app.js"></script>
 </body>
 </html>

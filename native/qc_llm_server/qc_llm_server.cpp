@@ -143,6 +143,9 @@ int main(int argc, char** argv) {
           }
         },
         [&stats_json](const llm::Stats& s) { stats_json = llm::stats_to_json_string(s); });
+    if (stats_json.size() > 1) {  // set by native/patch_prefix_cache.py
+      stats_json.insert(1, "\"cached_prompt_tokens\":" + std::to_string(r->reused_tokens()) + ",");
+    }
     if (loop_stop && stats_json.size() > 1) {
       stats_json.insert(1, "\"loop_stop\":1,");
     }

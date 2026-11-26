@@ -30,7 +30,7 @@ def _template(profile: dict, stats: dict) -> dict:
 
 
 def shift_summary(profile: dict, db: InspectionDB, llm=None, last_n: int = 200) -> dict:
-    stats = db.stats(last_n)
+    stats = db.stats(last_n, profile.get("name"))
     if not stats["defects"]:
         return {"trend": f"No defects in the last {stats['units']} units.", "likely_process_issue": "none",
                 "actions": ["continue monitoring"], "backend": "template", "stats": stats}

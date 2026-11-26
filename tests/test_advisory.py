@@ -158,3 +158,21 @@ def test_defect_name_is_not_a_cause(record, profile):
     advice, errors = validate(json.dumps(bad), record, profile, notes)
     assert errors == [] and notes
     assert record.defect_classes[0] not in advice["likely_causes"]
+
+
+def test_invented_counts_and_log_lines_in_verify_are_fixed(record, profile):
+    bad = {**GOOD, "verify": f"{record.unit_id} FAIL: one open; 2nd open in last 50 units; check etch.",
+           "log_entry": f"{record.unit_id} FAIL open; 9th open in last 50 units."}
+    advice, errors = validate(json.dumps(bad), record, profile)
+    assert advice is None and errors
+    notes = []
+    advice, errors = validate(json.dumps(bad), record, profile, notes)
+    assert errors == [] and advice["verify"] == "Re-inspect the next 5 units for open."
+    assert "last 50" not in advice["log_entry"] and notes
+
+
+def test_counts_from_the_record_are_kept(record, profile):
+    n, k = record.context["recent_units"], record.context["recent_defects"]["open"]
+    ok = {**GOOD, "log_entry": f"{record.unit_id} FAIL open; {k}nd open in last {n} units."}
+    advice, errors = validate(json.dumps(ok), record, profile)
+    assert errors == [] and f"last {n} units" in advice["log_entry"]

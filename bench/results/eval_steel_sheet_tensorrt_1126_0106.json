@@ -1,0 +1,207 @@
+{
+  "profile": "steel_sheet",
+  "backend": "tensorrt",
+  "split": "test",
+  "clean_split": "none",
+  "iou_threshold": 0.5,
+  "conf_threshold": 0.25,
+  "n_images": 345,
+  "n_defective_units": 345,
+  "n_clean_units": 0,
+  "class_conf": {},
+  "per_class": {
+    "crease": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 4,
+      "precision": 1.0,
+      "recall": 0.42857142857142855,
+      "f1": 0.6,
+      "hard_case_recall": 0.0
+    },
+    "crescent_gap": {
+      "tp": 36,
+      "fp": 12,
+      "fn": 1,
+      "precision": 0.75,
+      "recall": 0.972972972972973,
+      "f1": 0.8470588235294119,
+      "hard_case_recall": 0.9
+    },
+    "inclusion": {
+      "tp": 5,
+      "fp": 5,
+      "fn": 45,
+      "precision": 0.5,
+      "recall": 0.1,
+      "f1": 0.16666666666666669,
+      "hard_case_recall": 0.15384615384615385
+    },
+    "oil_spot": {
+      "tp": 17,
+      "fp": 11,
+      "fn": 6,
+      "precision": 0.6071428571428571,
+      "recall": 0.7391304347826086,
+      "f1": 0.6666666666666666,
+      "hard_case_recall": 1.0
+    },
+    "punching_hole": {
+      "tp": 47,
+      "fp": 2,
+      "fn": 2,
+      "precision": 0.9591836734693877,
+      "recall": 0.9591836734693877,
+      "f1": 0.9591836734693877,
+      "hard_case_recall": 0.8461538461538461
+    },
+    "rolled_pit": {
+      "tp": 5,
+      "fp": 1,
+      "fn": 5,
+      "precision": 0.8333333333333334,
+      "recall": 0.5,
+      "f1": 0.625,
+      "hard_case_recall": 0.3333333333333333
+    },
+    "silk_spot": {
+      "tp": 36,
+      "fp": 32,
+      "fn": 133,
+      "precision": 0.5294117647058824,
+      "recall": 0.21301775147928995,
+      "f1": 0.3037974683544304,
+      "hard_case_recall": 0.13953488372093023
+    },
+    "waist_folding": {
+      "tp": 8,
+      "fp": 3,
+      "fn": 7,
+      "precision": 0.7272727272727273,
+      "recall": 0.5333333333333333,
+      "f1": 0.6153846153846153,
+      "hard_case_recall": 0.25
+    },
+    "water_spot": {
+      "tp": 18,
+      "fp": 44,
+      "fn": 13,
+      "precision": 0.2903225806451613,
+      "recall": 0.5806451612903226,
+      "f1": 0.3870967741935484,
+      "hard_case_recall": 0.25
+    },
+    "welding_line": {
+      "tp": 72,
+      "fp": 8,
+      "fn": 3,
+      "precision": 0.9,
+      "recall": 0.96,
+      "f1": 0.9290322580645162,
+      "hard_case_recall": 0.9473684210526315
+    }
+  },
+  "macro": {
+    "precision": 0.709666693656935,
+    "recall": 0.5986854755899345,
+    "f1": 0.6099886946329243
+  },
+  "by_group_exposure": {
+    "all": {
+      "tp": 247,
+      "fn": 219,
+      "fp": 118,
+      "defective": 345,
+      "escapes": 143
+    }
+  },
+  "hard_case_recall_overall": 0.4628099173553719,
+  "unit_level": {
+    "escape_rate": 0.4144927536231884,
+    "false_reject_rate": null,
+    "verdict_matrix_gt_to_pred": {
+      "FAIL": {
+        "FAIL": 86,
+        "PASS_WITH_NOTE": 7,
+        "PASS": 11,
+        "REVIEW": 26
+      },
+      "PASS_WITH_NOTE": {
+        "PASS": 79,
+        "PASS_WITH_NOTE": 40,
+        "REVIEW": 62,
+        "FAIL": 10
+      },
+      "REVIEW": {
+        "REVIEW": 18,
+        "PASS": 4,
+        "PASS_WITH_NOTE": 2
+      }
+    }
+  },
+  "confusion_gt_to_pred": {
+    "crescent_gap": {
+      "crescent_gap": 36,
+      "missed": 1
+    },
+    "background": {
+      "welding_line": 8,
+      "silk_spot": 29,
+      "water_spot": 13,
+      "inclusion": 5,
+      "punching_hole": 2,
+      "oil_spot": 8,
+      "crescent_gap": 12,
+      "waist_folding": 3
+    },
+    "water_spot": {
+      "missed": 12,
+      "water_spot": 17,
+      "silk_spot": 2
+    },
+    "welding_line": {
+      "welding_line": 72,
+      "missed": 3
+    },
+    "silk_spot": {
+      "silk_spot": 36,
+      "missed": 111,
+      "water_spot": 22
+    },
+    "inclusion": {
+      "missed": 32,
+      "oil_spot": 2,
+      "rolled_pit": 1,
+      "water_spot": 10,
+      "inclusion": 5
+    },
+    "punching_hole": {
+      "punching_hole": 47,
+      "missed": 2
+    },
+    "oil_spot": {
+      "oil_spot": 17,
+      "missed": 5,
+      "silk_spot": 1
+    },
+    "rolled_pit": {
+      "missed": 4,
+      "rolled_pit": 5,
+      "oil_spot": 1
+    },
+    "crease": {
+      "crease": 3,
+      "missed": 4
+    },
+    "waist_folding": {
+      "waist_folding": 8,
+      "missed": 7
+    }
+  },
+  "latency_ms": {
+    "mean": 24.38198061448191,
+    "p50": 24.808524000036414,
+    "p95": 25.55657499942754
+  },
+  "evaluated_at": "2026-11-26T01:06:17"
+}

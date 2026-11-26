@@ -65,13 +65,16 @@ class Advisor:
             stats, raw = out.stats, out.text
             notes: list = []
             advice, errs = validate(out.text, record, self.profile, notes)
-            if advice is None and errs == ["missing key 'log_entry'"]:
-                # Llama gave summary/causes/actions/verify but skipped the log line: build that one field from the
-                # record (deterministic) and validate again; counted as repaired, never as a clean answer.
+            gaps = {"missing key 'verify'": "verify", "missing key 'log_entry'": "log_entry"}
+            if advice is None and errs and all(e in gaps for e in errs):
+                # Llama stopped before the last fields but gave summary, causes and actions: build those fields from
+                # the record (deterministic) and validate again; counted as repaired, never as a clean answer.
                 obj = extract_json(out.text) or repair_json(out.text)[0] or {}
-                obj["log_entry"] = json.loads(self.template.advise(record).text)["log_entry"]
-                advice, errs = validate(json.dumps(obj), record, self.profile)
-                notes.append("log_entry built from the record")
+                tpl = json.loads(self.template.advise(record).text)
+                for e in errs:
+                    obj[gaps[e]] = tpl[gaps[e]]
+                    notes.append(f"{gaps[e]} built from the record")
+                advice, errs = validate(json.dumps(obj), record, self.profile, notes)
             if advice:
                 res = self._result(record, advice, self.primary.name, True, False, attempts, errors, stats, raw)
                 res.repaired = bool(notes)
